@@ -17,6 +17,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
@@ -26,18 +29,23 @@ import android.util.Log;
 public class Rester extends AsyncTask<String, String, String> {
 
 	private static final String TAG = "Rester";
-	static InputStream is = null;
+	private static InputStream is = null;
+	private static int timeoutConnection = 3500;
 	@Override
 	protected String doInBackground(String... params) {
 		// TODO Auto-generated method stub
 		Log.v(TAG, "About to send request...");
-		dummyPost(params[0],params[1]);
+		dummyRest(params[0], params[1], params[2], params[3]);
 		return null;
 	}
 	
-	public void dummyPost(String method, String url) {
+	public void dummyRest(String method, String ip, String port, String function) {
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		DefaultHttpClient httpClient = new DefaultHttpClient();
+		HttpParams httpParameters = new BasicHttpParams();
+		HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
+		DefaultHttpClient httpClient = new DefaultHttpClient(httpParameters);
+		String url = "http://"+ip+":"+port+"/" + function;
+		Log.v(TAG, "URL: " + url);
 		
 		try {
 			//add timeout
