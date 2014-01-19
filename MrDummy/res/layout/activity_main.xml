@@ -50,8 +50,8 @@
         android:layout_alignLeft="@+id/button1"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="63dp"
-        android:onClick="startPosting"
-        android:text="Post" />
+        android:onClick="stopSensing"
+        android:text="Stop" />
 
     <Button
         android:id="@+id/button1"
@@ -62,8 +62,8 @@
         android:layout_alignRight="@+id/editTextPort"
         android:layout_marginBottom="21dp"
         android:layout_marginRight="16dp"
-        android:onClick="startGeting"
-        android:text="Get" />
+        android:onClick="startSensing"
+        android:text="Start" />
 
     <TextView
         android:id="@+id/textView3"
