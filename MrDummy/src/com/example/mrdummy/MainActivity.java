@@ -1,5 +1,10 @@
 package com.example.mrdummy;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,6 +20,27 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import com.koushikdutta.async.AsyncServer;
+import com.koushikdutta.async.future.SimpleFuture;
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.koushikdutta.async.http.socketio.ConnectCallback;
+import com.koushikdutta.async.http.socketio.DisconnectCallback;
+import com.koushikdutta.async.http.socketio.EventCallback;
+import com.koushikdutta.async.http.socketio.JSONCallback;
+import com.koushikdutta.async.http.socketio.ReconnectCallback;
+import com.koushikdutta.async.http.socketio.SocketIOClient;
+import com.koushikdutta.async.http.socketio.SocketIORequest;
+import com.koushikdutta.async.http.socketio.StringCallback;
+
+import junit.framework.TestCase;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.concurrent.TimeUnit;
 
 import android.location.Location;
 import android.os.AsyncTask;
@@ -33,6 +59,7 @@ import android.content.res.Configuration;
 import android.view.Menu;
 import android.widget.EditText;
 import android.widget.Toast;
+
 
 @SuppressLint("NewApi")
 public class MainActivity extends FragmentActivity implements
@@ -95,10 +122,23 @@ GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
     	Log.v(TAG,"Start getting location!");
         mUpdatesRequested = true;
 
-        if (servicesConnected()) {
-        	Log.v(TAG,"Services connected!");
-        	mLocationClient.connect();
-        }
+        //if (servicesConnected()) {
+        	//Log.v(TAG,"Services connected!");
+        	//mLocationClient.connect();
+        //}
+        
+        //Create json for connectionData
+		JSONObject connectionData = new JSONObject();
+        try {
+			connectionData.put("method", "POST");
+	        connectionData.put("ip", editTextIP.getText().toString());
+	        connectionData.put("port", editTextPort.getText().toString());
+	        connectionData.put("function", editTextFunction.getText().toString());
+	        start(connectionData);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void stopSensing(View view) {
@@ -254,11 +294,15 @@ GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 			e.printStackTrace();
 		}
         
-		Rester rester = new Rester();
+		//Rester rester = new Rester();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-			rester.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, connectionData, postData);
+			Log.v(TAG,"Use socker");
+			//socker
+			//rester.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, connectionData, postData);
 		else
-			rester.execute(connectionData, postData);
+			Log.v(TAG,"Use socker");
+			//socker
+			//rester.execute(connectionData, postData);
         Log.v(TAG,"Location found:"+msg);
     }
     
@@ -271,5 +315,96 @@ GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
     protected void onResumeFragments() {
         super.onResumeFragments();
     }
+    
+    /*
+    private void start(JSONObject connectionData) throws JSONException {
+    	final String url;
+		String method, ip, port, function;
+        //final String wsuri = "ws://192.168.1.132:9000";
+		method = connectionData.get("method").toString();
+		ip = connectionData.get("ip").toString();
+		port = connectionData.get("port").toString();
+		function = connectionData.get("function").toString();
+		url = "ws://"+ip+":"+port+"/" + function;
+		Log.v(TAG, "URL: " + url);
+   
+        try {
+        	mConnection.connect(url, new WebSocketHandler() {
+        	 
+	        	@Override
+	        	public void onOpen() {
+		  			Log.v(TAG, "Status: Connected to " + url);
+	     			mConnection.sendTextMessage("Hello, world!");
+	  			}
+	   
+	            @Override
+	            public void onTextMessage(String payload) {
+	               Log.v(TAG, "Got echo: " + payload);
+	            }
+	   
+	            @Override
+	            public void onClose(int code, String reason) {
+	               Log.v(TAG, "Connection lost.");
+	            }
+        	});
+        } catch (WebSocketException e) {
+        	Log.v(TAG, e.toString());
+        }
+     }
+    */
+
+    class TriggerFuture extends SimpleFuture<Boolean> {
+        public void trigger(boolean val) {
+            setComplete(val);
+        }
+    }
+    
+    public void start(JSONObject connectionData) throws JSONException{
+    	final String url;
+		String method, ip, port, function;
+        //final String wsuri = "ws://192.168.1.132:9000";
+		method = connectionData.get("method").toString();
+		ip = connectionData.get("ip").toString();
+		port = connectionData.get("port").toString();
+		function = connectionData.get("function").toString();
+		url = "http://"+ip+":"+port+"/" + function;
+		Log.v(TAG, "URL: " + url);
+        final TriggerFuture trigger1 = new TriggerFuture();
+        final TriggerFuture trigger2 = new TriggerFuture();
+        final TriggerFuture trigger3 = new TriggerFuture();
+	    SocketIORequest req = new SocketIORequest(url);
+	    req.setLogging("Socket.IO", Log.VERBOSE);
+	    SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), req, new ConnectCallback() {
+	        @Override
+	        public void onConnectCompleted(Exception ex, SocketIOClient client) {
+	            client.setStringCallback(new StringCallback() {
+	                @Override
+	                public void onString(String string, Acknowledge acknowledge) {
+	                    trigger1.trigger("hello".equals(string));
+	                }
+	            });
+	            client.on("pong", new EventCallback() {
+	                @Override
+	                public void onEvent(JSONArray arguments, Acknowledge acknowledge) {
+	                    trigger2.trigger(arguments.length() == 3);
+	                }
+	            });
+	            client.setJSONCallback(new JSONCallback() {
+	                @Override
+	                public void onJSON(JSONObject json, Acknowledge acknowledge) {
+	                    trigger3.trigger("world".equals(json.optString("hello")));
+	                }
+	            });
+	            try {
+	                client.emit("hello");
+	                client.emit(new JSONObject("{\"hello\":\"world\"}"));
+	                client.emit("ping", new JSONArray("[2,3,4]"));
+	            }
+	            catch (JSONException e) {
+	            }
+	        }
+	    });
+    }
+    
     
 }
