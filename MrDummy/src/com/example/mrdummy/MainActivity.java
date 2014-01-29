@@ -367,7 +367,7 @@ GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 		ip = connectionData.get("ip").toString();
 		port = connectionData.get("port").toString();
 		function = connectionData.get("function").toString();
-		url = "http://"+ip+":"+port+"/" + function;
+		url = "http://"+ip+":"+port;
 		Log.v(TAG, "URL: " + url);
         final TriggerFuture trigger1 = new TriggerFuture();
         final TriggerFuture trigger2 = new TriggerFuture();
@@ -377,30 +377,30 @@ GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 	    SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), req, new ConnectCallback() {
 	        @Override
 	        public void onConnectCompleted(Exception ex, SocketIOClient client) {
-	            client.setStringCallback(new StringCallback() {
-	                @Override
-	                public void onString(String string, Acknowledge acknowledge) {
-	                    trigger1.trigger("hello".equals(string));
-	                }
-	            });
-	            client.on("pong", new EventCallback() {
-	                @Override
-	                public void onEvent(JSONArray arguments, Acknowledge acknowledge) {
-	                    trigger2.trigger(arguments.length() == 3);
-	                }
-	            });
-	            client.setJSONCallback(new JSONCallback() {
-	                @Override
-	                public void onJSON(JSONObject json, Acknowledge acknowledge) {
-	                    trigger3.trigger("world".equals(json.optString("hello")));
-	                }
-	            });
-	            try {
-	                client.emit("hello");
-	                client.emit(new JSONObject("{\"hello\":\"world\"}"));
-	                client.emit("ping", new JSONArray("[2,3,4]"));
+//	            client.setStringCallback(new StringCallback() {
+//	                @Override
+//	                public void onString(String string, Acknowledge acknowledge) {
+//	                    trigger1.trigger("hello".equals(string));
+//	                }
+//	            });
+//	            client.on("pong", new EventCallback() {
+//	                @Override
+//	                public void onEvent(JSONArray arguments, Acknowledge acknowledge) {
+//	                    trigger2.trigger(arguments.length() == 3);
+//	                }
+//	            });
+//	            client.setJSONCallback(new JSONCallback() {
+//	                @Override
+//	                public void onJSON(JSONObject json, Acknowledge acknowledge) {
+//	                    trigger3.trigger("world".equals(json.optString("hello")));
+//	                }
+//	            });
+	        	try {
+	                client.emitEvent("hello");//emit("hello");
+//	                client.emit(new JSONObject("{\"hello\":\"world\"}"));
+//	                client.emit("ping", new JSONArray("[2,3,4]"));
 	            }
-	            catch (JSONException e) {
+	            catch (Exception e) {
 	            }
 	        }
 	    });
