@@ -32,7 +32,7 @@ public class ExampleApp extends Application implements ServiceConnection {
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		Log.v(TAG, "Kidiya service is being connected");
 		boundService = ((KidiyaService.KidiyaBinder)service).getService();
-		mKidiyaAPI.unbindFromKidiyaService();
+		//mKidiyaAPI.unbindFromKidiyaService();
 	}
 
 	@Override

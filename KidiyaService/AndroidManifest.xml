@@ -24,11 +24,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".LocationActivity"
+            android:windowSoftInputMode="stateVisible|adjustResize" >
+        </activity>
         <service
             android:name="service.KidiyaService"
             android:enabled="true"
             android:exported="true" >
         </service>
+        <provider
+       		android:authorities="service.database"
+       		android:name=".database.DataProvider" >
+		</provider> 
     </application>
 
 </manifest>
