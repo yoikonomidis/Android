@@ -35,7 +35,7 @@
         </service>
         <provider
        		android:authorities="service.database"
-       		android:name=".database.DataProvider" >
+       		android:name="service.database.DataProvider" >
 		</provider> 
     </application>
 

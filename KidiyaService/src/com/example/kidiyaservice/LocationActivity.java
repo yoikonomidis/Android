@@ -7,10 +7,12 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
 public class LocationActivity extends Activity {
+	private static final String TAG = "LocationActivity";
 	private EditText mTimestamp;
 	private EditText mLatitude;
 	private EditText mLongitude;
@@ -20,8 +22,9 @@ public class LocationActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle bundle) {
 	    super.onCreate(bundle);
-	    setContentView(R.layout.location_list);
-	
+	    setContentView(R.layout.location_edit);
+
+	    Log.v(TAG, "TATAAA");
 	    Bundle extras = getIntent().getExtras();
 	
 	    // check from the saved Instance
@@ -70,10 +73,9 @@ public class LocationActivity extends Activity {
 	}
 	
 	private void saveState() {
-		String timestamp = mTimestamp.getText().toString();
-		String longitude = mLatitude.getText().toString();
-		String latitude = mLongitude.getText().toString();
-	
+		String timestamp = "1000";
+		String longitude = "50";
+		String latitude = "4";
 	
 	    ContentValues values = new ContentValues();
 	    values.put(SQLiteHelper.COLUMN_TIMESTAMP, timestamp);
