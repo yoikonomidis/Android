@@ -24,7 +24,6 @@ public class LocationActivity extends Activity {
 	    super.onCreate(bundle);
 	    setContentView(R.layout.location_edit);
 
-	    Log.v(TAG, "TATAAA");
 	    Bundle extras = getIntent().getExtras();
 	
 	    // check from the saved Instance

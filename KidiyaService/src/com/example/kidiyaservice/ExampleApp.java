@@ -19,6 +19,7 @@ public class ExampleApp extends Application implements ServiceConnection {
 	private static final String TAG = "ExampleApp";
 	private KidiyaAPI mKidiyaAPI;
 	private KidiyaService boundService;
+	private Context context;
 	
     @Override
     public void onCreate() {
@@ -31,7 +32,13 @@ public class ExampleApp extends Application implements ServiceConnection {
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		Log.v(TAG, "Kidiya service is being connected");
-		boundService = ((KidiyaService.KidiyaBinder)service).getService();
+        new Thread() {
+
+            @Override
+            public void run() {
+                startKidiya();
+            }
+        }.start();
 		//mKidiyaAPI.unbindFromKidiyaService();
 	}
 
@@ -40,4 +47,9 @@ public class ExampleApp extends Application implements ServiceConnection {
 		Log.v(TAG, "Kidiya service is being disconnected");
 		boundService = null;
 	}
+	
+    protected void startKidiya() {
+		boundService = mKidiyaAPI.getService();
+		boundService.startKidiya();
+    }
 }

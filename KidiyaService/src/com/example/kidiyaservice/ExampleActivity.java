@@ -1,15 +1,10 @@
 package com.example.kidiyaservice;
 
-import java.util.List;
-import java.util.Random;
 
 import service.database.DataProvider;
 import service.database.SQLiteHelper;
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
-import service.database.models.Location;
-import service.database.models.LocationsAO;
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -25,7 +20,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
