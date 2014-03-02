@@ -28,9 +28,11 @@ public class DataProvider extends ContentProvider {
 		      + "/" + BASE_PATH);
 	
 	public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE
-		      + "/todo";
+		      + "/location";
 	
 	private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+	private static final String TAG = "DataProvider";
 	static {
 		sURIMatcher.addURI(AUTHORITY, BASE_PATH, LOCATIONS);
 		sURIMatcher.addURI(AUTHORITY, BASE_PATH + "/#", LOCATION_ID);
@@ -85,8 +87,9 @@ public class DataProvider extends ContentProvider {
 	    default:
 	    	throw new IllegalArgumentException("Unknown URI: " + uri);
 	    }
+	    uri = Uri.parse(CONTENT_URI + "/" + id);
 	    getContext().getContentResolver().notifyChange(uri, null);
-	    return Uri.parse(BASE_PATH + "/" + id);
+	    return uri;
 	}
 
 	@Override

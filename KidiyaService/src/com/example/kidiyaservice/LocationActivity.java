@@ -72,9 +72,9 @@ public class LocationActivity extends Activity {
 	}
 	
 	private void saveState() {
-		String timestamp = "1000";
-		String longitude = "50";
-		String latitude = "4";
+		String timestamp = "1001";
+		String longitude = "51";
+		String latitude = "43";
 	
 	    ContentValues values = new ContentValues();
 	    values.put(SQLiteHelper.COLUMN_TIMESTAMP, timestamp);

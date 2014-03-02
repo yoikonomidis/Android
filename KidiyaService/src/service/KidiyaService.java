@@ -5,6 +5,7 @@ import com.example.kidiyaservice.R;
 import service.database.DataProvider;
 import service.database.DataObserver;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
@@ -19,8 +20,10 @@ import android.util.Log;
 public class KidiyaService extends Service {
 	private static final String TAG = "Kidiya Service";
 	private Handler mHandler = new Handler();
-	private DataObserver dataObserver = new DataObserver(mHandler);
+	private Context context;
+	private DataObserver dataObserver;// = new DataObserver(mHandler, context);
     private static Handler initHandler;	// handler on main application thread	
+    private LocationSensor locationSensor;
     private final IBinder binder = new KidiyaBinder();	// interface for clients
 	
     /**
@@ -28,6 +31,8 @@ public class KidiyaService extends Service {
      */
     public class KidiyaBinder extends Binder {
         public KidiyaService getService() {
+        	context = KidiyaService.this;
+        	dataObserver = new DataObserver(mHandler, context);
             return KidiyaService.this;
         }
     }
@@ -69,6 +74,7 @@ public class KidiyaService extends Service {
             public void run() {
             	Log.i(TAG, "Start sensing and transmission");
             	getContentResolver().registerContentObserver(DataProvider.CONTENT_URI,true,dataObserver);
+            	startSensing();
             	// TODO: Create startSensing() and startTransmission().
             }
         });
@@ -90,6 +96,7 @@ public class KidiyaService extends Service {
     public void onDestroy() {
     	Log.v(TAG, "Kidiya service is being destroyed");
     	// TODO: Create stopSensing() and stopTransmission().
+    	stopSensing();
     	getContentResolver().unregisterContentObserver(dataObserver);
         // stop the main service
         stopForeground(true);
@@ -98,7 +105,16 @@ public class KidiyaService extends Service {
     }
     
     public synchronized void startKidiya() {
-    		Log.v(TAG, "Kidiya service about to be started");
-            startService(new Intent(this, KidiyaService.class));
+    	Log.v(TAG, "Kidiya service about to be started");
+        startService(new Intent(this, KidiyaService.class));
+    }
+    
+    public void startSensing(){
+    	locationSensor = LocationSensor.getInstance(context);
+    	locationSensor.start();
+    }
+    
+    public void stopSensing(){
+    	locationSensor.stop();
     }
 }
