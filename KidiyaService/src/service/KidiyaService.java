@@ -45,6 +45,7 @@ public class KidiyaService extends Service {
 	@Override
     public void onCreate() {
 		Log.v(TAG, "Kidiya service is being created");
+		Transceiver.instance();
     }
 	
     /**
@@ -62,7 +63,7 @@ public class KidiyaService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
     	Log.v(TAG, "Kidiya service is being started");
-    	
+		
         if (null == initHandler) {
             HandlerThread startThread = new HandlerThread("Start thread");
             startThread.start();
