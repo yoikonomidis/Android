@@ -1,9 +1,13 @@
 package service;
 
 import com.example.kidiyaservice.R;
-
 import service.database.DataProvider;
 import service.database.DataObserver;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.koushikdutta.async.http.socketio.EventCallback;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -46,7 +50,48 @@ public class KidiyaService extends Service {
     public void onCreate() {
 		Log.v(TAG, "Kidiya service is being created");
 		Transceiver.instance();
+		
+		// ######## Example of how to use the transceiver API ########
+		while(!Transceiver.instance().isConnected())
+		{}
+		
+		Log.v(TAG, "Connected");
+		
+		// Register to a specific event from the server
+		Transceiver.instance().receiveEvent("vehicleInfo", vehicleInfoCallback());
+		
+		JSONObject vehicles = new JSONObject();
+		try {
+			JSONArray vehicleArray = new JSONArray();
+			vehicleArray.put("220");
+			vehicleArray.put("230");
+			vehicleArray.put("235");
+			vehicles.put("vehicles", vehicleArray);
+		} catch (JSONException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}
+		JSONArray jsonArray = new JSONArray();
+		jsonArray.put(vehicles);
+		// Send an event to the server, along with the JSON message
+		Transceiver.instance().transmitEvent("getVehicleLocation", jsonArray);
+		// ############################################################
     }
+	
+	// ######## Example Handler to use for registering to server events ########
+	/**
+	 * Handler used when vehicle information is received
+	 * @return
+	 */
+	private EventCallback vehicleInfoCallback(){		
+		return new EventCallback(){
+			@Override
+			public void onEvent(JSONArray jsonData, Acknowledge ack) {
+				Log.v("Transceiver", "Event vehicleInfo received with json arg: " + jsonData.toString());
+			}
+		};
+	}
+	// #########################################################################
 	
     /**
 	 * Starts the Kidiya service.
