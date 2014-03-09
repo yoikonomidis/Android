@@ -37,7 +37,7 @@ public class Transceiver {
 	private void connect(){
 		// TODO: IP and PORT should be retrieved from the global Settings 
 		final String url;
-		final String ip = "192.168.2.2";
+		final String ip = "192.168.178.15";
 		final String port = "3000";
 		url = "http://"+ip+":"+port;
 		Log.v("Transceiver", "URL: " + url);
