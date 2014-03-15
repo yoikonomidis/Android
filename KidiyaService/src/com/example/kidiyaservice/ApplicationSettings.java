@@ -1,7 +1,9 @@
 package com.example.kidiyaservice;
 
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -28,19 +30,25 @@ public class ApplicationSettings {
 	}
 
 	/**
-	 * Creates the SupportMapFragment object and its map
+	 * Creates the SupportMapFragment object and its containing google map
 	 * @param fragmentActivity the activity that contains the map view
+	 */
+	public void initializeMapFragment(FragmentActivity fragmentActivity){		
+//		m_mapFragment = (SupportMapFragment) fragmentActivity.getSupportFragmentManager().findFragmentById(R.id.map);
+		if(m_mapFragment == null){
+			m_mapFragment = SupportMapFragment.newInstance();
+		}
+		
+	    FragmentTransaction fragmentTransaction = fragmentActivity.getSupportFragmentManager().beginTransaction();
+	    fragmentTransaction.add(R.id.map, m_mapFragment);
+	    fragmentTransaction.commit();
+	}
+	
+	/**
+	 * Returns the SupportMapFragment object
 	 * @return the SupportMapFragment object
 	 */
-	public SupportMapFragment mapFragment(FragmentActivity fragmentActivity){
-		
-		//TODO: Investigate the possibility of creating only one SupportMapFragment object and retain it after a FragmentActivity is destroyed
-		m_mapFragment = (SupportMapFragment) fragmentActivity.getSupportFragmentManager().findFragmentById(R.id.map);
-		m_mapFragment.setRetainInstance(true);
-
-		//TODO: Investigate the possibility of creating only one GoogleMap object and retain it after a FragmentActivity is destroyed
-		m_googleMap = m_mapFragment.getMap();
-		
+	public SupportMapFragment mapFragment(){
 		return m_mapFragment;
 	}
 	
@@ -51,6 +59,11 @@ public class ApplicationSettings {
 	public GoogleMap googleMap(){
 		return m_googleMap;
 	}
-	
-	
+
+	/**
+	 * Sets the google map
+	 */
+	public void setGoogleMap() {
+		m_googleMap = m_mapFragment.getMap();
+	}
 }

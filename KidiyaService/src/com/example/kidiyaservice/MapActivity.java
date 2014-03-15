@@ -3,7 +3,6 @@ package com.example.kidiyaservice;
 import kidiya.utils.Settings;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -24,11 +23,12 @@ public class MapActivity extends FragmentActivity {
 		setContentView(R.layout.activity_map);
 		
 		// Getting reference to the SupportMapFragment of activity_main.xml
-		SupportMapFragment mapFragment = ApplicationSettings.instance().mapFragment(this);
+		ApplicationSettings.instance().initializeMapFragment(this);
+		
 
 		// Check if first run, and prevent map from resetting when screen is rotated
 		if (savedInstanceState == null) {
-			mapFragment.setRetainInstance(true);
+			ApplicationSettings.instance().mapFragment().setRetainInstance(true);
 		}
 		
 		// Show the Up button in the action bar.
@@ -38,6 +38,9 @@ public class MapActivity extends FragmentActivity {
 	@Override
 	protected void onResume(){
 		super.onResume();
+		
+		// Instantiate google map
+		ApplicationSettings.instance().setGoogleMap();
 		
 		restoreCameraState();		
 	}
@@ -68,6 +71,7 @@ public class MapActivity extends FragmentActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.map, menu);
+		
 		return true;
 	}
 
