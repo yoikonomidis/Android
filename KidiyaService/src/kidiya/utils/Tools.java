@@ -1,16 +1,33 @@
 package kidiya.utils;
 
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
+import android.app.Activity;
+import android.content.Context;
 
 public class Tools {
-
-	public static Editor putDouble(final Editor edit, final String key, final double value) {
-		return edit.putLong(key, Double.doubleToRawLongBits(value));
-	}
-
-	public static double getDouble(final SharedPreferences prefs, final String key, final double defaultValue) {
-		return Double.longBitsToDouble(prefs.getLong(key, Double.doubleToLongBits(defaultValue)));
+	
+	/**
+	 * This function checks whether Google Play Services are installed and if not, redirects the user to Google Play Store
+	 * @param context
+	 * @return true if Google Play Services are installed, false otherwise
+	 */
+	public static boolean googlePlayServicesExists(Context context){
+		final int RQS_GooglePlayServices = 1;
+		
+		boolean result = false;
+		
+		int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
+		
+		if (status != ConnectionResult.SUCCESS) {
+			GooglePlayServicesUtil.getErrorDialog(status, (Activity) context, RQS_GooglePlayServices).show();
+		}
+		else{
+			result = true;
+		}
+		
+		return result;
 	}
 
 }

@@ -9,6 +9,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import kidiya.utils.ImageAdapter;
+import kidiya.utils.Settings;
+import kidiya.utils.Tools;
 
 
 /*
@@ -30,6 +32,12 @@ public class ExampleActivity extends Activity {
 		
 		// Create the main menu page
 		createMainMenu();
+		
+		// Check if Google Play Services is installed on the device
+		Tools.googlePlayServicesExists(m_context);
+		
+		// Initialize Settings
+		Settings.instance(m_context, getResources().getString(R.string.app_name));
 	}
 
 	@Override
@@ -45,12 +53,13 @@ public class ExampleActivity extends Activity {
         // Proceed to Map page when the image button is pressed
 		gridview.setOnItemClickListener(new OnItemClickListener() {
 	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-	        	Intent intent = new Intent(m_context, MapActivity.class);
-	            
-//	            String message = editText.getText().toString();
-//	            intent.putExtra(EXTRA_MESSAGE, message);
-	            startActivity(intent);
+	        	if(Tools.googlePlayServicesExists(m_context)){
+	        		Intent intent = new Intent(m_context, MapActivity.class);
 
+	        		//	            String message = editText.getText().toString();
+	        		//	            intent.putExtra(EXTRA_MESSAGE, message);
+	        		startActivity(intent);
+	        	}
 	        }
 	    });
 	}

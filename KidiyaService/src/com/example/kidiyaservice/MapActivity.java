@@ -1,9 +1,11 @@
 package com.example.kidiyaservice;
 
-import kidiya.utils.Tools;
+import kidiya.utils.Settings;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -14,7 +16,6 @@ import android.view.MenuItem;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
-import android.content.SharedPreferences;
 import android.os.Build;
 
 public class MapActivity extends FragmentActivity {
@@ -25,6 +26,14 @@ public class MapActivity extends FragmentActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_map);
+		
+		// Initialize maps
+		try {
+		     MapsInitializer.initialize(this);
+		 } catch (GooglePlayServicesNotAvailableException e) {
+		     e.printStackTrace();
+		 }
+		
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
@@ -42,45 +51,16 @@ public class MapActivity extends FragmentActivity {
 	
 	@Override
 	protected void onResume(){
-		//TODO: Create a single SharedPreferences object.
-		SharedPreferences settings = getSharedPreferences("MyPrefs", 0);
-		
-		//TODO: Create a restoreCameraState method in Tools.
-        double longitude = Tools.getDouble(settings, "longitude", 0);  //"initial longitude" is only used on first startup
-        double latitude = Tools.getDouble(settings, "latitude", 0);
-        double zoom = Tools.getDouble(settings, "zoom", 0);
-
-        LatLng startPosition = new LatLng(latitude, longitude); //with longitude and latitude
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-        .target(startPosition)      // Sets the center of the map to Mountain View
-        .zoom((float) zoom)         // Sets the zoom
-        //.bearing(90)              // Sets the orientation of the camera to east
-        //.tilt(30)                 // Sets the tilt of the camera to 30 degrees
-        .build();                   // Creates a CameraPosition from the builder
-        
-        googleMap().animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 		super.onResume();
+		
+		restoreCameraState();		
 	}
 	
 	@Override
 	protected void onPause(){
-		//TODO: Create a saveCameraState method in Tools.
-		CameraPosition mMyCam = googleMap().getCameraPosition();
-		double longitude = mMyCam.target.longitude;
-		double latitude = mMyCam.target.latitude;
-		double zoom = mMyCam.zoom;
-
-		//TODO: Create a single SharedPreferences object. 
-		SharedPreferences settings = getSharedPreferences("MyPrefs", 0);
-		SharedPreferences.Editor editor = settings.edit();
-		
-		Tools.putDouble(editor, "longitude", longitude);
-		Tools.putDouble(editor, "latitude", latitude);
-		Tools.putDouble(editor, "zoom", zoom);
-		//put all other values like latitude, angle, zoom...
-		editor.commit();
 		super.onPause();
+		
+		storeCameraState();
 	}
 	
 	@Override
@@ -122,12 +102,57 @@ public class MapActivity extends FragmentActivity {
 		return super.onOptionsItemSelected(item);
 	}
 	
+	/**
+	 * Retrieves the map
+	 * @return
+	 */
 	public GoogleMap googleMap(){
 		return m_googleMap;
 	}
 	
+	/**
+	 * Stores the map
+	 * @param map
+	 */
 	public void setGoogleMap(GoogleMap map){
 		m_googleMap = map;
+	}
+	
+	/**
+	 * This function stores camera's state (latitude, longitude, zoom) in settings
+	 */
+	private void storeCameraState(){
+		
+		CameraPosition mMyCam = googleMap().getCameraPosition();
+		double longitude = mMyCam.target.longitude;
+		double latitude = mMyCam.target.latitude;
+		double zoom = mMyCam.zoom;
+ 
+		Settings settings = Settings.instance(this, getResources().getString(R.string.app_name));
+		settings.setValue("longitude", longitude, Settings.SETTING_TYPE.DOUBLE);
+		settings.setValue("latitude", latitude, Settings.SETTING_TYPE.DOUBLE);
+		settings.setValue("zoom", zoom, Settings.SETTING_TYPE.DOUBLE);
+	}
+	
+	/**
+	 * This function is used to restore the camera's state (latitude, longitude, zoom) from settings
+	 */
+	private void restoreCameraState(){
+		
+		Settings settings = Settings.instance(this, getResources().getString(R.string.app_name));
+        double longitude = settings.value("longitude", Settings.SETTING_TYPE.DOUBLE);
+        double latitude = settings.value("latitude", Settings.SETTING_TYPE.DOUBLE);
+        double zoom = settings.value("zoom", Settings.SETTING_TYPE.DOUBLE);
+
+        LatLng startPosition = new LatLng(latitude, longitude); //with longitude and latitude
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+        .target(startPosition)      // Sets the center of the map to Mountain View
+        .zoom((float) zoom)         // Sets the zoom
+        //.bearing(90)              // Sets the orientation of the camera to east
+        //.tilt(30)                 // Sets the tilt of the camera to 30 degrees
+        .build();                   // Creates a CameraPosition from the builder
+        
+        googleMap().animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 	}
 
 }
