@@ -38,6 +38,9 @@ public class ExampleActivity extends Activity {
 		
 		// Initialize Settings
 		Settings.instance(m_context, getResources().getString(R.string.app_name));
+		
+		// Initialize ApplicationSettings
+		ApplicationSettings.instance();
 	}
 
 	@Override

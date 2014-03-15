@@ -2,10 +2,7 @@ package com.example.kidiyaservice;
 
 import kidiya.utils.Settings;
 
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -19,34 +16,23 @@ import android.annotation.TargetApi;
 import android.os.Build;
 
 public class MapActivity extends FragmentActivity {
-
-	private GoogleMap m_googleMap;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
 		setContentView(R.layout.activity_map);
 		
-		// Initialize maps
-		try {
-		     MapsInitializer.initialize(this);
-		 } catch (GooglePlayServicesNotAvailableException e) {
-		     e.printStackTrace();
-		 }
+		// Getting reference to the SupportMapFragment of activity_main.xml
+		SupportMapFragment mapFragment = ApplicationSettings.instance().mapFragment(this);
+
+		// Check if first run, and prevent map from resetting when screen is rotated
+		if (savedInstanceState == null) {
+			mapFragment.setRetainInstance(true);
+		}
 		
 		// Show the Up button in the action bar.
 		setupActionBar();
-		
-		// Getting reference to the SupportMapFragment of activity_main.xml
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        
-        // Getting GoogleMap object from the fragment
-        setGoogleMap(mapFragment.getMap());
-        
-        // Check if first run, and prevent map from resetting when screen is rotated
-        if (savedInstanceState == null) {
-        	mapFragment.setRetainInstance(true);
-        }
 	}
 	
 	@Override
@@ -103,27 +89,10 @@ public class MapActivity extends FragmentActivity {
 	}
 	
 	/**
-	 * Retrieves the map
-	 * @return
-	 */
-	public GoogleMap googleMap(){
-		return m_googleMap;
-	}
-	
-	/**
-	 * Stores the map
-	 * @param map
-	 */
-	public void setGoogleMap(GoogleMap map){
-		m_googleMap = map;
-	}
-	
-	/**
 	 * This function stores camera's state (latitude, longitude, zoom) in settings
 	 */
 	private void storeCameraState(){
-		
-		CameraPosition mMyCam = googleMap().getCameraPosition();
+		CameraPosition mMyCam = ApplicationSettings.instance().googleMap().getCameraPosition();
 		double longitude = mMyCam.target.longitude;
 		double latitude = mMyCam.target.latitude;
 		double zoom = mMyCam.zoom;
@@ -138,7 +107,6 @@ public class MapActivity extends FragmentActivity {
 	 * This function is used to restore the camera's state (latitude, longitude, zoom) from settings
 	 */
 	private void restoreCameraState(){
-		
 		Settings settings = Settings.instance(this, getResources().getString(R.string.app_name));
         double longitude = settings.value("longitude", Settings.SETTING_TYPE.DOUBLE);
         double latitude = settings.value("latitude", Settings.SETTING_TYPE.DOUBLE);
@@ -152,7 +120,7 @@ public class MapActivity extends FragmentActivity {
         //.tilt(30)                 // Sets the tilt of the camera to 30 degrees
         .build();                   // Creates a CameraPosition from the builder
         
-        googleMap().animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        ApplicationSettings.instance().googleMap().animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 	}
 
 }
