@@ -39,6 +39,10 @@
             android:enabled="true"
             android:exported="true" >
         </service>
+        <provider
+       		android:authorities="service.database"
+       		android:name="service.database.DataProvider" >
+		</provider> 
 
         <activity
             android:name="com.example.kidiyaservice.MapActivity"

@@ -1,6 +1,15 @@
 package service;
 
+import com.example.kidiyaservice.R;
+import service.database.DataProvider;
+import service.database.DataObserver;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.koushikdutta.async.http.socketio.EventCallback;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
@@ -14,8 +23,11 @@ import android.util.Log;
  */
 public class KidiyaService extends Service {
 	private static final String TAG = "Kidiya Service";
-	
+	private Handler mHandler = new Handler();
+	private Context context;
+	private DataObserver dataObserver;// = new DataObserver(mHandler, context);
     private static Handler initHandler;	// handler on main application thread	
+    private LocationSensor locationSensor;
     private final IBinder binder = new KidiyaBinder();	// interface for clients
 	
     /**
@@ -23,6 +35,8 @@ public class KidiyaService extends Service {
      */
     public class KidiyaBinder extends Binder {
         public KidiyaService getService() {
+        	context = KidiyaService.this;
+        	dataObserver = new DataObserver(mHandler, context);
             return KidiyaService.this;
         }
     }
@@ -35,6 +49,32 @@ public class KidiyaService extends Service {
 	@Override
     public void onCreate() {
 		Log.v(TAG, "Kidiya service is being created");
+//		Transceiver.instance();
+		// ######## Example of how to use the transceiver API ########
+//		while(!Transceiver.instance().isConnected())
+//		{}
+//		
+//		Log.v(TAG, "Connected");
+//		
+//		// Register to a specific event from the server
+//		Transceiver.instance().receiveEvent("vehicleInfo", vehicleInfoCallback());
+//		
+//		JSONObject vehicles = new JSONObject();
+//		try {
+//			JSONArray vehicleArray = new JSONArray();
+//			vehicleArray.put("220");
+//			vehicleArray.put("230");
+//			vehicleArray.put("235");
+//			vehicles.put("vehicles", vehicleArray);
+//		} catch (JSONException e) {
+//		    // TODO Auto-generated catch block
+//		    e.printStackTrace();
+//		}
+//		JSONArray jsonArray = new JSONArray();
+//		jsonArray.put(vehicles);
+//		// Send an event to the server, along with the JSON message
+//		Transceiver.instance().transmitEvent("getVehicleLocation", jsonArray);
+		// ############################################################
     }
 	
     /**
@@ -63,6 +103,8 @@ public class KidiyaService extends Service {
             @Override
             public void run() {
             	Log.i(TAG, "Start sensing and transmission");
+            	getContentResolver().registerContentObserver(DataProvider.CONTENT_URI,true,dataObserver);
+            	startSensing();
             	// TODO: Create startSensing() and startTransmission().
             }
         });
@@ -84,10 +126,25 @@ public class KidiyaService extends Service {
     public void onDestroy() {
     	Log.v(TAG, "Kidiya service is being destroyed");
     	// TODO: Create stopSensing() and stopTransmission().
-    	
+    	stopSensing();
+    	getContentResolver().unregisterContentObserver(dataObserver);
         // stop the main service
         stopForeground(true);
 
         super.onDestroy();
+    }
+    
+    public synchronized void startKidiya() {
+    	Log.v(TAG, "Kidiya service about to be started");
+        startService(new Intent(this, KidiyaService.class));
+    }
+    
+    public void startSensing(){
+    	locationSensor = LocationSensor.getInstance(context);
+    	locationSensor.start();
+    }
+    
+    public void stopSensing(){
+    	locationSensor.stop();
     }
 }
