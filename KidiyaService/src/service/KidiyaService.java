@@ -1,13 +1,7 @@
 package service;
 
-import com.example.kidiyaservice.R;
 import service.database.DataProvider;
 import service.database.DataObserver;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import com.koushikdutta.async.http.socketio.Acknowledge;
-import com.koushikdutta.async.http.socketio.EventCallback;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -23,20 +17,20 @@ import android.util.Log;
  */
 public class KidiyaService extends Service {
 	private static final String TAG = "Kidiya Service";
-	private Handler mHandler = new Handler();
-	private Context context;
-	private DataObserver dataObserver;// = new DataObserver(mHandler, context);
-    private static Handler initHandler;	// handler on main application thread	
-    private LocationSensor locationSensor;
-    private final IBinder binder = new KidiyaBinder();	// interface for clients
+	private Handler m_Handler = new Handler();
+	private Context m_context;
+	private DataObserver m_dataObserver;// = new DataObserver(mHandler, context);
+    private static Handler m_initHandler;	// handler on main application thread	
+    private LocationSensor m_locationSensor;
+    private final IBinder m_binder = new KidiyaBinder();	// interface for clients
 	
     /**
      * Class for clients to access Kidiya Service.
      */
     public class KidiyaBinder extends Binder {
         public KidiyaService getService() {
-        	context = KidiyaService.this;
-        	dataObserver = new DataObserver(mHandler, context);
+        	m_context = KidiyaService.this;
+        	m_dataObserver = new DataObserver(m_Handler, m_context);
             return KidiyaService.this;
         }
     }
@@ -49,32 +43,6 @@ public class KidiyaService extends Service {
 	@Override
     public void onCreate() {
 		Log.v(TAG, "Kidiya service is being created");
-//		Transceiver.instance();
-		// ######## Example of how to use the transceiver API ########
-//		while(!Transceiver.instance().isConnected())
-//		{}
-//		
-//		Log.v(TAG, "Connected");
-//		
-//		// Register to a specific event from the server
-//		Transceiver.instance().receiveEvent("vehicleInfo", vehicleInfoCallback());
-//		
-//		JSONObject vehicles = new JSONObject();
-//		try {
-//			JSONArray vehicleArray = new JSONArray();
-//			vehicleArray.put("220");
-//			vehicleArray.put("230");
-//			vehicleArray.put("235");
-//			vehicles.put("vehicles", vehicleArray);
-//		} catch (JSONException e) {
-//		    // TODO Auto-generated catch block
-//		    e.printStackTrace();
-//		}
-//		JSONArray jsonArray = new JSONArray();
-//		jsonArray.put(vehicles);
-//		// Send an event to the server, along with the JSON message
-//		Transceiver.instance().transmitEvent("getVehicleLocation", jsonArray);
-		// ############################################################
     }
 	
     /**
@@ -93,17 +61,17 @@ public class KidiyaService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
     	Log.v(TAG, "Kidiya service is being started");
     	
-        if (null == initHandler) {
+        if (null == m_initHandler) {
             HandlerThread startThread = new HandlerThread("Start thread");
             startThread.start();
-            initHandler = new Handler(startThread.getLooper());
+            m_initHandler = new Handler(startThread.getLooper());
         }
-        initHandler.post(new Runnable() {
+        m_initHandler.post(new Runnable() {
 
             @Override
             public void run() {
             	Log.i(TAG, "Start sensing and transmission");
-            	getContentResolver().registerContentObserver(DataProvider.CONTENT_URI,true,dataObserver);
+            	getContentResolver().registerContentObserver(DataProvider.CONTENT_URI,true,m_dataObserver);
             	startSensing();
             	// TODO: Create startSensing() and startTransmission().
             }
@@ -116,7 +84,7 @@ public class KidiyaService extends Service {
 		Log.v(TAG, "Some component is binding to Kidiya service");
 		// TODO: Change KidiyaBinder() to instantiate the proper binder.
 		
-		return binder;
+		return m_binder;
 	}
 	
     /**
@@ -127,7 +95,7 @@ public class KidiyaService extends Service {
     	Log.v(TAG, "Kidiya service is being destroyed");
     	// TODO: Create stopSensing() and stopTransmission().
     	stopSensing();
-    	getContentResolver().unregisterContentObserver(dataObserver);
+    	getContentResolver().unregisterContentObserver(m_dataObserver);
         // stop the main service
         stopForeground(true);
 
@@ -140,11 +108,11 @@ public class KidiyaService extends Service {
     }
     
     public void startSensing(){
-    	locationSensor = LocationSensor.getInstance(context);
-    	locationSensor.start();
+    	m_locationSensor = LocationSensor.getInstance(m_context);
+    	m_locationSensor.start();
     }
     
     public void stopSensing(){
-    	locationSensor.stop();
+    	m_locationSensor.stop();
     }
 }

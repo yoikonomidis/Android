@@ -1,12 +1,24 @@
 package com.example.kidiyaservice;
 
+import java.util.HashMap;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import kidiya.utils.Settings;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.koushikdutta.async.http.socketio.EventCallback;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.app.FragmentActivity;
@@ -15,6 +27,20 @@ import android.annotation.TargetApi;
 import android.os.Build;
 
 public class MapActivity extends FragmentActivity {
+	
+	private HashMap<String, HashMap<String, Marker>> m_busLineHashMap = new HashMap<String, HashMap<String, Marker>>();
+	private String[] arrayVehicles = {"220", "230", "235"};
+	private Handler m_handler = new Handler();
+	
+	// Handler used when vehicle information is received	 
+	private EventCallback m_vehicleInfoCallback = new EventCallback(){
+		@Override
+		public void onEvent(JSONArray jsonData, Acknowledge ack) {
+			Log.v("Transceiver", "Event vehicleInfo received with json arg: " + jsonData.toString());
+			UpdateMarker updateMarker = new UpdateMarker(jsonData);
+			m_handler.post(updateMarker);
+		}
+	};
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +58,7 @@ public class MapActivity extends FragmentActivity {
 		}
 		
 		// Show the Up button in the action bar.
-		setupActionBar();
+		setupActionBar();			
 	}
 	
 	@Override
@@ -42,6 +68,26 @@ public class MapActivity extends FragmentActivity {
 		// Instantiate google map
 		ApplicationSettings.instance().setGoogleMap();
 		
+		// ######## Example of how to use the transceiver API ########
+		// Register to a specific event from the server
+		KidiyaAPI.instance().receiveEvent("vehicleInfo", m_vehicleInfoCallback);
+		
+		JSONObject vehicles = new JSONObject();
+		try {
+			JSONArray vehicleArray = new JSONArray();
+			vehicleArray.put(arrayVehicles[0]);
+			vehicleArray.put(arrayVehicles[1]);
+			vehicleArray.put(arrayVehicles[2]);
+			vehicles.put("vehicles", vehicleArray);
+		} catch (JSONException e) {
+		    e.printStackTrace();
+		}
+		JSONArray jsonArray = new JSONArray();
+		jsonArray.put(vehicles);
+		// Send an event to the server, along with the JSON message
+		KidiyaAPI.instance().transmitEvent("getVehicleLocation", jsonArray);
+		// ############################################################
+		
 		restoreCameraState();		
 	}
 	
@@ -50,11 +96,15 @@ public class MapActivity extends FragmentActivity {
 		super.onPause();
 		
 		storeCameraState();
+		
+		// De-register from event
+		KidiyaAPI.instance().stopReceivingEvent("vehicleInfo", m_vehicleInfoCallback);
 	}
 	
 	@Override
 	protected void onDestroy(){
 		super.onDestroy();
+		Log.d("DEBUG", "ON DESTROY");
 	}
 
 	/**
@@ -126,5 +176,47 @@ public class MapActivity extends FragmentActivity {
         
         ApplicationSettings.instance().googleMap().animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 	}
+	
+	class UpdateMarker implements Runnable{
 
+		private JSONArray m_jsonArray;
+		
+		public UpdateMarker(JSONArray jsonArray){
+			m_jsonArray = jsonArray;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				for(int i=0; i<m_jsonArray.getJSONArray(0).length(); i++){	
+					Log.d("DEBUG", m_jsonArray.getJSONArray(0).getJSONObject(i).getJSONObject("location").toString());
+
+					double latitude = m_jsonArray.getJSONArray(0).getJSONObject(i).getJSONObject("location").getDouble("latitude");
+					double longitude = m_jsonArray.getJSONArray(0).getJSONObject(i).getJSONObject("location").getDouble("longitude");
+
+					Log.d("DEBUG", latitude + " " + longitude);
+
+					LatLng latlng = new LatLng(latitude, longitude);
+
+					String indexName = m_jsonArray.getJSONArray(0).getJSONObject(i).getString("name");
+					String indexId = m_jsonArray.getJSONArray(0).getJSONObject(i).getString("id");
+					
+					if(m_busLineHashMap.get(indexName) == null){
+						m_busLineHashMap.put(indexName, new HashMap<String, Marker>());
+					}
+					
+					if(m_busLineHashMap.get(indexName).get(indexId) != null){
+						m_busLineHashMap.get(indexName).get(indexId).setPosition(latlng);
+					}
+					else{
+						m_busLineHashMap.get(indexName).put(indexId, ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
+						.position(new LatLng(latitude, longitude))
+						.title("Hello Marker " + indexId)));
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

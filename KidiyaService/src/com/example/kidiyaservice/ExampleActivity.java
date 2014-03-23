@@ -27,20 +27,20 @@ public class ExampleActivity extends Activity {
 //		setContentView(R.layout.map_layout);
 		m_context = this;
 		
+		// Check if Google Play Services is installed on the device
+		Tools.googlePlayServicesExists(m_context);
+
+		// Initialize Settings
+		Settings.instance(m_context, getResources().getString(R.string.app_name));
+
+		// Initialize ApplicationSettings
+		ApplicationSettings.instance();
+		
 		// Start the application
 		ExampleApp app = (ExampleApp) getApplication();
 		
 		// Create the main menu page
 		createMainMenu();
-		
-		// Check if Google Play Services is installed on the device
-		Tools.googlePlayServicesExists(m_context);
-		
-		// Initialize Settings
-		Settings.instance(m_context, getResources().getString(R.string.app_name));
-		
-		// Initialize ApplicationSettings
-		ApplicationSettings.instance();
 	}
 
 	@Override
