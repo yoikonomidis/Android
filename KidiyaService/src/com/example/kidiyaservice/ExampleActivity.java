@@ -27,8 +27,7 @@ import android.widget.SimpleCursorAdapter;
  * Dummy activity that connects ExampleApp.
  */
 @SuppressLint("NewApi")
-public class ExampleActivity extends ListActivity implements
-	LoaderManager.LoaderCallbacks<Cursor> {
+public class ExampleActivity extends ListActivity{
 	private static final String TAG = "ExampleActivity";
 	//private LocationsAO locationSource;
 	private static final int DELETE_ID = Menu.FIRST + 1;
@@ -42,7 +41,6 @@ public class ExampleActivity extends ListActivity implements
         ExampleApp app = (ExampleApp) getApplication();
         
         this.getListView().setDividerHeight(2);
-        fillData();
         registerForContextMenu(getListView());
     }
     
@@ -72,7 +70,6 @@ public class ExampleActivity extends ListActivity implements
     		Uri uri = Uri.parse(DataProvider.CONTENT_URI + "/"
     				+ info.id);
     		getContentResolver().delete(uri, null, null);
-    		fillData();
     		return true;
     	}
     	return super.onContextItemSelected(item);
@@ -92,47 +89,11 @@ public class ExampleActivity extends ListActivity implements
 
     	startActivity(i);
     }
-
-    @SuppressLint("NewApi")
-	private void fillData() {
-        // Fields from the database (projection)
-        // Must include the _id column for the adapter to work
-        String[] from = new String[] { SQLiteHelper.COLUMN_TIMESTAMP };
-        // Fields on the UI to which we map
-        int[] to = new int[] { R.id.label };
-
-        getLoaderManager().initLoader(0, null, this);
-        adapter = new SimpleCursorAdapter(this, R.layout.location_row, null, from,
-            to, 0);
-
-        setListAdapter(adapter);
-    }
     
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
     		ContextMenuInfo menuInfo) {
     	super.onCreateContextMenu(menu, v, menuInfo);
     	menu.add(0, DELETE_ID, 0, R.string.menu_delete);
-    }
-
-    // creates a new loader after the initLoader () call
-    @SuppressLint("NewApi")
-	@Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-    	String[] projection = { SQLiteHelper.COLUMN_ID, SQLiteHelper.COLUMN_TIMESTAMP };
-      	CursorLoader cursorLoader = new CursorLoader(this,
-    		  DataProvider.CONTENT_URI, projection, null, null, null);
-      	return cursorLoader;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-    	adapter.swapCursor(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-    	// data is not available anymore, delete reference
-    	adapter.swapCursor(null);
     }
 }
