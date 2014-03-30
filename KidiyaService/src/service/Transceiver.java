@@ -18,6 +18,7 @@ import com.koushikdutta.async.http.socketio.SocketIORequest;
 public class Transceiver {
 	private static Transceiver m_instance = null;
 	private SocketIOClient m_client = null;
+	private static final String TAG = "Transceiver";
 
 	private Transceiver(){
 		connect();
@@ -37,10 +38,10 @@ public class Transceiver {
 	private void connect(){
 		// TODO: IP and PORT should be retrieved from the global Settings 
 		final String url;
-		final String ip = "192.168.178.15";
+		final String ip = "192.168.2.4";
 		final String port = "3000";
 		url = "http://"+ip+":"+port;
-		Log.v("Transceiver", "URL: " + url);
+		Log.v(TAG, "URL: " + url);
 	    SocketIORequest req = new SocketIORequest(url);
 	    req.setLogging("Socket.IO", Log.VERBOSE);
 	    SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), req, connectCallback());
@@ -55,7 +56,7 @@ public class Transceiver {
 			@Override
 			public void onConnectCompleted(Exception ex, SocketIOClient client) {
 				try {
-					Log.v("Transceiver", "Connected");
+					Log.v(TAG, "Connected");
 					m_client = client;												
 					m_client.setDisconnectCallback(disconnectCallback());
 				}
@@ -71,7 +72,8 @@ public class Transceiver {
 	 * @param jsonArray the JSON message
 	 */
 	public void transmitEvent(String eventName, JSONArray jsonArray){
-		Log.v("Transceiver", "TransmitEvent");		
+		Log.v(TAG, "TransmitEvent");	
+		Log.v(TAG, "EventName: " + eventName + "jsonArray: " + jsonArray);
 		m_client.emit(eventName, jsonArray, null);
 	}
 	
@@ -100,7 +102,7 @@ public class Transceiver {
 		return new DisconnectCallback(){
 			@Override
 			public void onDisconnect(Exception arg0) {
-				Log.v("Transceiver", "DisconnectCallback");
+				Log.v(TAG, "DisconnectCallback");
 				if(m_client != null)
 					m_client.disconnect();
 				m_client = null;

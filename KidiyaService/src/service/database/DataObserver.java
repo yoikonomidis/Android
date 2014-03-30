@@ -73,11 +73,20 @@ public class DataObserver extends ContentObserver {
 				 " lat: " + lat);
 		
 		JSONObject locations = new JSONObject();
+		
+		JSONObject postData = new JSONObject();
 		try {
+			//Create json for postData
+			postData.put("id", 4);
+			postData.put("name", "235");
+	    
+			JSONObject loc = new JSONObject();
+			loc.put("latitude", lat);
+			loc.put("longitude", longi);
+			postData.put("location", loc);
+		         
 			JSONArray locationArray = new JSONArray();
-			locationArray.put(time);
-			locationArray.put(longi);
-			locationArray.put(lat);
+			locationArray.put(postData);
 			locations.put("locationInfo", locationArray);
 		} catch (JSONException e) {
 		    // TODO Auto-generated catch block
@@ -86,7 +95,7 @@ public class DataObserver extends ContentObserver {
 		JSONArray jsonArray = new JSONArray();
 		jsonArray.put(locations);
 		// Send an event to the server, along with the JSON message
-		transceiver.transmitEvent("getLocation", jsonArray);
+		transceiver.transmitEvent("updateVehicleLocation", jsonArray);
 		// ############################################################
 	 }
 

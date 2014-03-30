@@ -31,7 +31,7 @@ public class LocationSensor {
 			long timestamp = location.getTime();
 			double latitude = location.getLatitude();
 			double longitude = location.getLongitude();
-			
+			Log.v(TAG, "New longi: " + longitude);
 		    ContentValues values = new ContentValues();
 		    values.put(SQLiteHelper.COLUMN_TIMESTAMP, timestamp);
 		    values.put(SQLiteHelper.COLUMN_LATITUDE, latitude);
