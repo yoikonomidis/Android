@@ -1,6 +1,5 @@
 package service.database;
 
-import java.text.Normalizer;
 import java.util.Calendar;
 
 import org.json.JSONArray;
@@ -44,13 +43,47 @@ public class DataObserver extends ContentObserver {
 		// TODO Auto-generated constructor stub
 	}
 	
-	 @Override
-	 public void onChange(boolean selfChange) {
-	     onChange(selfChange, null);
-	     //queryLastLocation();
+	//Implementation for older APIs
+	@Override
+	public void onChange(boolean selfChange) {	
+	     // Handle change.
+		 String[] projection = { SQLiteHelper.COLUMN_TIMESTAMP,
+					  SQLiteHelper.COLUMN_LATITUDE, SQLiteHelper.COLUMN_LONGITUDE };
+		 Cursor c = context.getContentResolver().query(DataProvider.CONTENT_URI, 
+					projection, null,
+					null, null);
+		 c.moveToLast();
+		 long time = c.getLong(0);
+		 double lat = c.getDouble(1);
+		 double longi = c.getDouble(2);
+		 Log.v(TAG, "Last rec time: " + time +
+				 " long: " + longi +
+				 " lat: " + lat);
+		
+		JSONObject locations = new JSONObject();
+		
+		JSONObject postData = new JSONObject();
+		JSONArray locationArray = new JSONArray();
+		try {
+			//Create json for postData
+			postData.put("id", 5);
+			postData.put("name", "235");
+	    
+			JSONObject loc = new JSONObject();
+			loc.put("latitude", lat);
+			loc.put("longitude", longi);
+			postData.put("location", loc);
+		         
+			locationArray.put(postData);
+		} catch (JSONException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}
+		// Send an event to the server, along with the JSON message
+		transceiver.transmitEvent("updateVehicleLocation", locationArray);
+		// ############################################################
 	 }
 
-	 // Implement the onChange(boolean, Uri) method to take advantage of the new Uri argument.
 	 @Override
 	 public void onChange(boolean selfChange, Uri uri) {
 		 //queryLastLocation();
@@ -60,7 +93,6 @@ public class DataObserver extends ContentObserver {
 	     // Handle change.
 		 String[] projection = { SQLiteHelper.COLUMN_TIMESTAMP,
 					  SQLiteHelper.COLUMN_LATITUDE, SQLiteHelper.COLUMN_LONGITUDE };
-		 final String sa1 = "%A%"; // contains an "A"
 		 Cursor c = context.getContentResolver().query(DataProvider.CONTENT_URI, 
 				 							projection, SQLiteHelper.COLUMN_ID + "='" + id + "'",
 				 							null, null);
@@ -78,7 +110,7 @@ public class DataObserver extends ContentObserver {
 		JSONArray locationArray = new JSONArray();
 		try {
 			//Create json for postData
-			postData.put("id", 4);
+			postData.put("id", 5);
 			postData.put("name", "235");
 	    
 			JSONObject loc = new JSONObject();
@@ -94,7 +126,7 @@ public class DataObserver extends ContentObserver {
 		// Send an event to the server, along with the JSON message
 		transceiver.transmitEvent("updateVehicleLocation", locationArray);
 		// ############################################################
-	 }
+	}
 
 	/**
 	 * Handler used when location information is received
