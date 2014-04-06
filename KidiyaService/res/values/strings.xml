@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="action_kidiya_service" translatable="false">service.KidiyaService</string>
+    
     <string name="app_name">KidiyaService</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    <string name="no_locations">Currently there are no location items maintained</string>
+  	<string name="menu_insert">Add Location</string>
+  	<string name="menu_delete">Delete Location</string>
+  	<string name="location_timestamp">Timestamp</string>
+  	<string name="location_latitude">Latitude</string>
+  	<string name="location_longitude">Longitude</string>
 
 </resources>

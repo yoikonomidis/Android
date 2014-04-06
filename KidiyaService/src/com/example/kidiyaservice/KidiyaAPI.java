@@ -83,4 +83,8 @@ public class KidiyaAPI {
         mKidiyaService = null;
         mServiceBound = false;
     }
+    
+    public KidiyaService getService() {
+        return mKidiyaService;
+    }
 }
