@@ -92,6 +92,10 @@ public class KidiyaAPI{
 	public void stopReceivingEvent(String eventName, EventCallback eventCallback){
 		Transceiver.instance().stopReceivingEvent(eventName, eventCallback);
 	}
+	
+	public boolean isConnected(){
+		return Transceiver.instance().isConnected();
+	}
     
     /**
      * Service connection to handle connection with the Kidiya service.

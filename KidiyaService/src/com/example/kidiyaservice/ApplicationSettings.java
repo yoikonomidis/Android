@@ -1,16 +1,28 @@
 package com.example.kidiyaservice;
 
+import java.util.HashMap;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.koushikdutta.async.http.socketio.EventCallback;
 
 public class ApplicationSettings {
 
 	private static ApplicationSettings m_instance;
 	private static SupportMapFragment m_mapFragment;
 	private static GoogleMap m_googleMap;
+	
+	private HashMap<String, Station> m_stationsHashMap = new HashMap<String, Station>();
 	
 	private ApplicationSettings(){
 	}
@@ -63,5 +75,63 @@ public class ApplicationSettings {
 	 */
 	public void setGoogleMap() {
 		m_googleMap = m_mapFragment.getMap();
+		m_googleMap.setMyLocationEnabled(true);
+	}
+	
+	/**
+	 * Fetch station info from server
+	 */
+	public void fetchStations(){
+		m_stationsHashMap.clear();
+		Log.d("ApplicationSettings", "FETCH STATIONINFO");
+		KidiyaAPI.instance().receiveEvent("stationInfo", setStationInfo());
+		KidiyaAPI.instance().transmitEvent("getStations", null);
+	}
+	
+	public HashMap<String, Station> stationsHashMap(){
+		return m_stationsHashMap;
+	}
+	
+	private EventCallback setStationInfo(){		
+		return new EventCallback(){
+			@Override
+			public void onEvent(JSONArray jsonData, Acknowledge ack) {
+				Log.v("ApplicationSettings", "Event stationInfo received with json arg: " + jsonData.toString());
+				
+				try{
+					for(int i=0; i<jsonData.getJSONArray(0).length(); i++){
+						m_stationsHashMap.put(jsonData.getJSONArray(0).getJSONObject(i).getJSONObject("properties").getString("id"), 
+								new Station(jsonData.getJSONArray(0).getJSONObject(i).getJSONObject("properties").getString("id"), 
+										jsonData.getJSONArray(0).getJSONObject(i).getJSONObject("properties").getString("name"),
+										jsonData.getJSONArray(0).getJSONObject(i).getJSONObject("geometry").getJSONArray("coordinates").getDouble(0),
+										jsonData.getJSONArray(0).getJSONObject(i).getJSONObject("geometry").getJSONArray("coordinates").getDouble(1)));
+					}
+
+					KidiyaAPI.instance().stopReceivingEvent("stationInfo",setStationInfo());
+
+				}catch (JSONException e){
+					e.printStackTrace();
+				}
+			}
+		};
+	}
+	
+class UpdateStationMarkers implements Runnable{
+		
+		@Override
+		public void run() {
+			try {
+				for(int i=0; i<ApplicationSettings.instance().stationsHashMap().size(); i++){	
+					Log.d("DEBUG", "STATION MARKERS");
+					ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
+					.position(ApplicationSettings.instance().stationsHashMap().get(i+"").latLng())
+					.title(ApplicationSettings.instance().stationsHashMap().get(i+"").id() + " "
+							+ ApplicationSettings.instance().stationsHashMap().get(i+"").name())
+					.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

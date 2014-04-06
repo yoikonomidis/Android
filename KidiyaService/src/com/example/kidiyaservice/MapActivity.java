@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import kidiya.utils.Settings;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -37,7 +38,7 @@ public class MapActivity extends FragmentActivity {
 		@Override
 		public void onEvent(JSONArray jsonData, Acknowledge ack) {
 			Log.v("Transceiver", "Event vehicleInfo received with json arg: " + jsonData.toString());
-			UpdateMarker updateMarker = new UpdateMarker(jsonData);
+			UpdateBusMarker updateMarker = new UpdateBusMarker(jsonData);
 			m_handler.post(updateMarker);
 		}
 	};
@@ -58,7 +59,10 @@ public class MapActivity extends FragmentActivity {
 		}
 		
 		// Show the Up button in the action bar.
-		setupActionBar();			
+		setupActionBar();	
+		
+		UpdateStationMarkers updateStationMarkers = new UpdateStationMarkers();
+		m_handler.post(updateStationMarkers);
 	}
 	
 	@Override
@@ -146,10 +150,10 @@ public class MapActivity extends FragmentActivity {
 	 * This function stores camera's state (latitude, longitude, zoom) in settings
 	 */
 	private void storeCameraState(){
-		CameraPosition mMyCam = ApplicationSettings.instance().googleMap().getCameraPosition();
-		double longitude = mMyCam.target.longitude;
-		double latitude = mMyCam.target.latitude;
-		double zoom = mMyCam.zoom;
+		CameraPosition m_MyCam = ApplicationSettings.instance().googleMap().getCameraPosition();
+		double longitude = m_MyCam.target.longitude;
+		double latitude = m_MyCam.target.latitude;
+		double zoom = m_MyCam.zoom;
  
 		Settings settings = Settings.instance(this, getResources().getString(R.string.app_name));
 		settings.setValue("longitude", longitude, Settings.SETTING_TYPE.DOUBLE);
@@ -168,7 +172,7 @@ public class MapActivity extends FragmentActivity {
 
         LatLng startPosition = new LatLng(latitude, longitude); //with longitude and latitude
         CameraPosition cameraPosition = new CameraPosition.Builder()
-        .target(startPosition)      // Sets the center of the map to Mountain View
+        .target(startPosition)      // Sets the center of the map to the last position
         .zoom((float) zoom)         // Sets the zoom
         //.bearing(90)              // Sets the orientation of the camera to east
         //.tilt(30)                 // Sets the tilt of the camera to 30 degrees
@@ -177,11 +181,11 @@ public class MapActivity extends FragmentActivity {
         ApplicationSettings.instance().googleMap().animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 	}
 	
-	class UpdateMarker implements Runnable{
+	class UpdateBusMarker implements Runnable{
 
 		private JSONArray m_jsonArray;
 		
-		public UpdateMarker(JSONArray jsonArray){
+		public UpdateBusMarker(JSONArray jsonArray){
 			m_jsonArray = jsonArray;
 		}
 		
@@ -211,8 +215,27 @@ public class MapActivity extends FragmentActivity {
 					else{
 						m_busLineHashMap.get(indexName).put(indexId, ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
 						.position(new LatLng(latitude, longitude))
-						.title("Hello Marker " + indexId)));
+						.title(indexName + " " + indexId)));
 					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	class UpdateStationMarkers implements Runnable{
+		
+		@Override
+		public void run() {
+			try {
+				for(int i=0; i<ApplicationSettings.instance().stationsHashMap().size(); i++){	
+					Log.d("DEBUG", "STATION MARKERS");
+					ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
+					.position(ApplicationSettings.instance().stationsHashMap().get(i+"").latLng())
+					.title(ApplicationSettings.instance().stationsHashMap().get(i+"").id() + " "
+							+ ApplicationSettings.instance().stationsHashMap().get(i+"").name())
+					.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
