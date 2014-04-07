@@ -82,7 +82,7 @@ public class LocationActivity extends Activity {
 	    values.put(SQLiteHelper.COLUMN_LONGITUDE, longitude);
 	
 	    if (locationUri == null) {
-	    	locationUri = getContentResolver().insert(DataProvider.CONTENT_URI, values);
+	    	locationUri = getContentResolver().insert(DataProvider.CONTENT_URI1, values);
 	    } else {
 	    	getContentResolver().update(locationUri, values, null, null);
 	    }

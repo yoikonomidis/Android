@@ -64,7 +64,7 @@ public class ExampleActivity extends ListActivity{
     	case DELETE_ID:
     		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
             	.getMenuInfo();
-    		Uri uri = Uri.parse(DataProvider.CONTENT_URI + "/"
+    		Uri uri = Uri.parse(DataProvider.CONTENT_URI1 + "/"
     				+ info.id);
     		getContentResolver().delete(uri, null, null);
     		return true;
@@ -81,7 +81,7 @@ public class ExampleActivity extends ListActivity{
     protected void onListItemClick(ListView l, View v, int position, long id) {
     	super.onListItemClick(l, v, position, id);
     	Intent i = new Intent(this, LocationActivity.class);
-    	Uri locationUri = Uri.parse(DataProvider.CONTENT_URI + "/" + id);
+    	Uri locationUri = Uri.parse(DataProvider.CONTENT_URI1 + "/" + id);
     	i.putExtra(DataProvider.CONTENT_ITEM_TYPE, locationUri);
 
     	startActivity(i);

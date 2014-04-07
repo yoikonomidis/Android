@@ -36,7 +36,7 @@ public class LocationSensor {
 		    values.put(SQLiteHelper.COLUMN_LATITUDE, latitude);
 		    values.put(SQLiteHelper.COLUMN_LONGITUDE, longitude);
 		   
-		    context.getContentResolver().insert(DataProvider.CONTENT_URI, values);
+		    context.getContentResolver().insert(DataProvider.CONTENT_URI1, values);
 		}
 
 		@Override

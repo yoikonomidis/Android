@@ -28,6 +28,7 @@ public class KidiyaService extends Service {
 	private DataObserver dataObserver;// = new DataObserver(mHandler, context);
     private static Handler initHandler;	// handler on main application thread	
     private LocationSensor locationSensor;
+    private AccelerationSensor accelerationSensor;
     private final IBinder binder = new KidiyaBinder();	// interface for clients
 	
     /**
@@ -77,7 +78,8 @@ public class KidiyaService extends Service {
             @Override
             public void run() {
             	Log.i(TAG, "Start sensing and transmission");
-            	getContentResolver().registerContentObserver(DataProvider.CONTENT_URI,true,dataObserver);
+            	getContentResolver().registerContentObserver(DataProvider.CONTENT_URI1,true,dataObserver);
+            	getContentResolver().registerContentObserver(DataProvider.CONTENT_URI2,true,dataObserver);
             	startSensing();
             	// TODO: Create startSensing() and startTransmission().
             }
@@ -115,10 +117,13 @@ public class KidiyaService extends Service {
     
     public void startSensing(){
     	locationSensor = LocationSensor.getInstance(context);
+    	accelerationSensor = AccelerationSensor.getInstance(context);
     	locationSensor.start();
+    	accelerationSensor.start();
     }
     
     public void stopSensing(){
     	locationSensor.stop();
+    	accelerationSensor.stop();
     }
 }
