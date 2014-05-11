@@ -11,8 +11,6 @@ import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.koushikdutta.async.http.socketio.Acknowledge;
 import com.koushikdutta.async.http.socketio.EventCallback;
 
@@ -114,24 +112,5 @@ public class ApplicationSettings {
 				}
 			}
 		};
-	}
-	
-class UpdateStationMarkers implements Runnable{
-		
-		@Override
-		public void run() {
-			try {
-				for(int i=0; i<ApplicationSettings.instance().stationsHashMap().size(); i++){	
-					Log.d("DEBUG", "STATION MARKERS");
-					ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
-					.position(ApplicationSettings.instance().stationsHashMap().get(i+"").latLng())
-					.title(ApplicationSettings.instance().stationsHashMap().get(i+"").id() + " "
-							+ ApplicationSettings.instance().stationsHashMap().get(i+"").name())
-					.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 	}
 }

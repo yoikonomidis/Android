@@ -43,7 +43,7 @@ public class ExampleActivity extends Activity {
 		createMainMenu();
 		
 		// TODO: Add a user friendly message if connection is not established after the attempts
-		int connectionAttempts = 5;
+		int connectionAttempts = 10;
 		
 		// Make sure a connection to the server is established before we attempt to fetch station info
 		while((!KidiyaAPI.instance().isConnected()) && (connectionAttempts > 0)){

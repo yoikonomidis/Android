@@ -1,5 +1,6 @@
 package com.example.kidiyaservice;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.json.JSONArray;
@@ -8,7 +9,10 @@ import org.json.JSONObject;
 
 import kidiya.utils.Settings;
 
+import com.example.kidiyaservice.LineSelectDialogFragment.LineSelectDialogListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -22,12 +26,18 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Build;
 
-public class MapActivity extends FragmentActivity {
+public class MapActivity extends FragmentActivity 
+						implements OnMarkerClickListener, OnInfoWindowClickListener, LineSelectDialogListener{
 	
 	private HashMap<String, HashMap<String, Marker>> m_busLineHashMap = new HashMap<String, HashMap<String, Marker>>();
 	private String[] arrayVehicles = {"220", "230", "235"};
@@ -72,24 +82,28 @@ public class MapActivity extends FragmentActivity {
 		// Instantiate google map
 		ApplicationSettings.instance().setGoogleMap();
 		
+		ApplicationSettings.instance().googleMap().setOnInfoWindowClickListener(this);
+		
+		ApplicationSettings.instance().googleMap().setOnMarkerClickListener(this);
+		
 		// ######## Example of how to use the transceiver API ########
 		// Register to a specific event from the server
 		KidiyaAPI.instance().receiveEvent("vehicleInfo", m_vehicleInfoCallback);
 		
-		JSONObject vehicles = new JSONObject();
-		try {
-			JSONArray vehicleArray = new JSONArray();
-			vehicleArray.put(arrayVehicles[0]);
-			vehicleArray.put(arrayVehicles[1]);
-			vehicleArray.put(arrayVehicles[2]);
-			vehicles.put("vehicles", vehicleArray);
-		} catch (JSONException e) {
-		    e.printStackTrace();
-		}
-		JSONArray jsonArray = new JSONArray();
-		jsonArray.put(vehicles);
-		// Send an event to the server, along with the JSON message
-		KidiyaAPI.instance().transmitEvent("getVehicleLocation", jsonArray);
+//		JSONObject vehicles = new JSONObject();
+//		try {
+//			JSONArray vehicleArray = new JSONArray();
+//			vehicleArray.put(arrayVehicles[0]);
+//			vehicleArray.put(arrayVehicles[1]);
+//			vehicleArray.put(arrayVehicles[2]);
+//			vehicles.put("vehicles", vehicleArray);
+//		} catch (JSONException e) {
+//		    e.printStackTrace();
+//		}
+//		JSONArray jsonArray = new JSONArray();
+//		jsonArray.put(vehicles);
+//		// Send an event to the server, along with the JSON message
+//		KidiyaAPI.instance().transmitEvent("getVehicleLocation", jsonArray);
 		// ############################################################
 		
 		restoreCameraState();		
@@ -181,6 +195,35 @@ public class MapActivity extends FragmentActivity {
         ApplicationSettings.instance().googleMap().animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 	}
 	
+	// The dialog fragment receives a reference to this Activity through the
+    // Fragment.onAttach() callback, which it uses to call the following methods
+    // defined by the NoticeDialogFragment.NoticeDialogListener interface
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog, ArrayList<String> selectedLines) {
+        // User touched the dialog's positive button
+    	JSONObject vehicles = new JSONObject();
+		try {
+			JSONArray vehicleArray = new JSONArray();
+			for(int i=0; i<selectedLines.size(); i++){
+				vehicleArray.put(selectedLines.get(i).toString());
+			}
+			
+			vehicles.put("vehicles", vehicleArray);
+		} catch (JSONException e) {
+		    e.printStackTrace();
+		}
+		JSONArray jsonArray = new JSONArray();
+		jsonArray.put(vehicles);
+		// Send an event to the server, along with the JSON message
+		KidiyaAPI.instance().transmitEvent("getVehicleLocation", jsonArray);
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog, ArrayList<String> selectedLines) {
+        // User touched the dialog's negative button
+    }
+
+	
 	class UpdateBusMarker implements Runnable{
 
 		private JSONArray m_jsonArray;
@@ -230,16 +273,127 @@ public class MapActivity extends FragmentActivity {
 		public void run() {
 			try {
 				for(int i=0; i<ApplicationSettings.instance().stationsHashMap().size(); i++){	
-					Log.d("DEBUG", "STATION MARKERS");
 					ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
 					.position(ApplicationSettings.instance().stationsHashMap().get(i+"").latLng())
-					.title(ApplicationSettings.instance().stationsHashMap().get(i+"").id() + " "
+					.title("Station " + ApplicationSettings.instance().stationsHashMap().get(i+"").id() + " "
 							+ ApplicationSettings.instance().stationsHashMap().get(i+"").name())
-					.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+					.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+					.snippet(stationBusLines()));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
+	
+	/**
+	 * This method returns all the lines that pass through a station
+	 * @return a String to be displayed in a Station marker's InfoWindow containing bus lines 
+	 */
+	private String stationBusLines(){
+		// TODO: Make this function return the bus lines for the specific station
+		return "Bus Lines: " + arrayVehicles[0] + ", " + arrayVehicles[1] + ", " + arrayVehicles[2];
+	}
+	
+	@Override
+	public boolean onMarkerClick(Marker marker) {
+		// If station marker is clicked, display list of bus lines
+		if(!marker.getTitle().startsWith("Station")){ 
+			// Do something if this is a Station marker
+		}
+		
+		return false;
+	}
+
+	@Override
+	public void onInfoWindowClick(Marker marker) {
+		// If station marker is clicked, display list of bus lines
+		if(marker.getTitle().startsWith("Station")){ 
+			// Do something if this is a Station marker
+			DialogFragment selectDialog = LineSelectDialogFragment.newInstance(arrayVehicles);
+			selectDialog.show(getSupportFragmentManager(), "LineSelectDialog");
+
+		}
+	}
 }
+
+class LineSelectDialogFragment extends DialogFragment {
+	
+	public static LineSelectDialogFragment newInstance(String[] arrayVehicles) {
+		LineSelectDialogFragment frag = new LineSelectDialogFragment();
+        Bundle args = new Bundle();
+        args.putStringArray("arrayVehicles", arrayVehicles);
+        frag.setArguments(args);
+        return frag;
+    }
+	
+	public interface LineSelectDialogListener {
+        public void onDialogPositiveClick(DialogFragment dialog, ArrayList<String> selectedLines);
+        public void onDialogNegativeClick(DialogFragment dialog, ArrayList<String> selectedLines);
+    }
+
+	LineSelectDialogListener m_listener;
+	
+	// Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        // Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the NoticeDialogListener so we can send events to the host
+        	m_listener = (LineSelectDialogListener) activity;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(activity.toString()
+                    + " must implement LineSelectDialogListener");
+        }
+    }
+
+	
+	@Override
+	public Dialog onCreateDialog(Bundle savedInstanceState) {
+		
+		final String[] arrayVehicles = getArguments().getStringArray("arrayVehicles");
+		
+		final ArrayList<String> m_SelectedLines = new ArrayList<String>();  // Where we track the selected items
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		
+		// Set the dialog title
+		builder.setTitle(R.string.line_select_dialog)
+		// Specify the list array, the items to be selected by default (null for none),
+		// and the listener through which to receive callbacks when items are selected
+		.setMultiChoiceItems(arrayVehicles, null,
+				new DialogInterface.OnMultiChoiceClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which,
+					boolean isChecked) {
+				if (isChecked) {
+					// If the user checked the item, add it to the selected lines
+					m_SelectedLines.add(arrayVehicles[which]);
+				} else if (m_SelectedLines.contains(arrayVehicles[which])) {
+					// Else, if the item is already in the array, remove it 
+					m_SelectedLines.remove(arrayVehicles[which]);
+				}
+			}
+		})
+		// Set the action buttons
+		.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				// User clicked OK, so save the m_SelectedLines results somewhere
+				// or return them to the component that opened the dialog
+				m_listener.onDialogPositiveClick(LineSelectDialogFragment.this, m_SelectedLines);
+			}
+		})
+		.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int id) {
+				m_SelectedLines.clear();
+				m_listener.onDialogNegativeClick(LineSelectDialogFragment.this, m_SelectedLines);
+			}
+		});
+
+		return builder.create();
+	}
+}
+
