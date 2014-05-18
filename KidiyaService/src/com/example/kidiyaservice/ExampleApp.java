@@ -1,5 +1,6 @@
 package com.example.kidiyaservice;
 
+import kidiya.utils.Settings;
 import service.KidiyaService;
 import android.os.IBinder;
 import android.app.Application;
@@ -18,6 +19,8 @@ public class ExampleApp extends Application implements ServiceConnection {
     public void onCreate() {
         super.onCreate();
         Log.v(TAG, "Example App installed");
+        // Initialize Settings
+        Settings.instance(this, getResources().getString(R.string.app_name));
         KidiyaAPI.initialize(this, this);
     }
 

@@ -9,6 +9,8 @@ public class Settings {
 	private static Settings m_settings;
 	private SharedPreferences m_sharedPreferences;
 	private SharedPreferences.Editor m_editor;
+	private static String m_serverIP;
+	private static String m_serverPort;
 	
 	public enum SETTING_TYPE{
 		BOOLEAN,
@@ -23,6 +25,30 @@ public class Settings {
 		m_sharedPreferences = context.getSharedPreferences(applicationName + "Settings", 0);
 		m_editor = m_sharedPreferences.edit();
 		initialize();
+	}
+	
+	public void setServerIP(String serverIP){
+		m_serverIP = serverIP;
+	}
+	
+	public String serverIP(){
+		return m_serverIP;
+	}
+	
+	public void setServerPort(String serverPort){
+		m_serverPort = serverPort;
+	}
+	
+	public String serverPort(){
+		return m_serverPort;
+	}
+	
+	/**
+	 * Returns the existing Settings object if exists	 
+	 * @return the Settings instance
+	 */
+	public static Settings instance(){		
+		return m_settings;			
 	}
 	
 	/**
@@ -108,5 +134,7 @@ public class Settings {
 	 */
 	private void initialize(){
 		//TODO: Initialize with all needed values
+		setServerIP("192.168.2.4");
+		setServerPort("3000");
 	}
 }

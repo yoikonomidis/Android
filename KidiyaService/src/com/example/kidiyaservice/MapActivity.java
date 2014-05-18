@@ -2,12 +2,12 @@ package com.example.kidiyaservice;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import kidiya.utils.Settings;
+import kidiya.utils.Tools;
 
 import com.example.kidiyaservice.LineSelectDialogFragment.LineSelectDialogListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -40,7 +40,8 @@ public class MapActivity extends FragmentActivity
 						implements OnMarkerClickListener, OnInfoWindowClickListener, LineSelectDialogListener{
 	
 	private HashMap<String, HashMap<String, Marker>> m_busLineHashMap = new HashMap<String, HashMap<String, Marker>>();
-	private String[] arrayVehicles = {"220", "230", "235"};
+	private String[] m_arrayVehicles = {"220", "230", "235"};
+	private ArrayList<String> m_monitoredBusLines = new ArrayList<String>();
 	private Handler m_handler = new Handler();
 	
 	// Handler used when vehicle information is received	 
@@ -89,22 +90,6 @@ public class MapActivity extends FragmentActivity
 		// ######## Example of how to use the transceiver API ########
 		// Register to a specific event from the server
 		KidiyaAPI.instance().receiveEvent("vehicleInfo", m_vehicleInfoCallback);
-		
-//		JSONObject vehicles = new JSONObject();
-//		try {
-//			JSONArray vehicleArray = new JSONArray();
-//			vehicleArray.put(arrayVehicles[0]);
-//			vehicleArray.put(arrayVehicles[1]);
-//			vehicleArray.put(arrayVehicles[2]);
-//			vehicles.put("vehicles", vehicleArray);
-//		} catch (JSONException e) {
-//		    e.printStackTrace();
-//		}
-//		JSONArray jsonArray = new JSONArray();
-//		jsonArray.put(vehicles);
-//		// Send an event to the server, along with the JSON message
-//		KidiyaAPI.instance().transmitEvent("getVehicleLocation", jsonArray);
-		// ############################################################
 		
 		restoreCameraState();		
 	}
@@ -201,28 +186,39 @@ public class MapActivity extends FragmentActivity
     @Override
     public void onDialogPositiveClick(DialogFragment dialog, ArrayList<String> selectedLines) {
         // User touched the dialog's positive button
-    	JSONObject vehicles = new JSONObject();
-		try {
-			JSONArray vehicleArray = new JSONArray();
-			for(int i=0; i<selectedLines.size(); i++){
-				vehicleArray.put(selectedLines.get(i).toString());
-			}
-			
-			vehicles.put("vehicles", vehicleArray);
-		} catch (JSONException e) {
-		    e.printStackTrace();
-		}
-		JSONArray jsonArray = new JSONArray();
-		jsonArray.put(vehicles);
+    	
+    	// De-register from receiving updates for previously selected lines
+    	if(!m_monitoredBusLines.isEmpty()){    		
+    		KidiyaAPI.instance().transmitEvent("deregisterVehiclesLocation", 
+    				Tools.convertArrayListToJSONArray(m_monitoredBusLines, "vehicles"));
+    		
+    		for(int i=0; i<m_monitoredBusLines.size(); i++){
+    			if(!selectedLines.contains(m_monitoredBusLines.get(i)) &&
+    					m_busLineHashMap.containsKey(m_monitoredBusLines.get(i))){
+    				for (Entry<String, Marker> element : m_busLineHashMap.get(m_monitoredBusLines.get(i)).entrySet()) {
+    					element.getValue().remove();
+    				}
+    				
+    				m_busLineHashMap.remove(m_monitoredBusLines.get(i));    				
+    			}
+    		}
+    		
+    		m_monitoredBusLines.clear();
+    	}    	
+    	
+    	m_monitoredBusLines = new ArrayList<String>(selectedLines);
+    	
 		// Send an event to the server, along with the JSON message
-		KidiyaAPI.instance().transmitEvent("getVehicleLocation", jsonArray);
+    	if(!selectedLines.isEmpty()){
+    		KidiyaAPI.instance().transmitEvent("getVehicleLocation", 
+    				Tools.convertArrayListToJSONArray(selectedLines, "vehicles"));
+    	}
     }
 
     @Override
     public void onDialogNegativeClick(DialogFragment dialog, ArrayList<String> selectedLines) {
         // User touched the dialog's negative button
     }
-
 	
 	class UpdateBusMarker implements Runnable{
 
@@ -246,7 +242,7 @@ public class MapActivity extends FragmentActivity
 					LatLng latlng = new LatLng(latitude, longitude);
 
 					String indexName = m_jsonArray.getJSONArray(0).getJSONObject(i).getString("name");
-					String indexId = m_jsonArray.getJSONArray(0).getJSONObject(i).getString("id");
+					String indexId = m_jsonArray.getJSONArray(0).getJSONObject(i).getString("id");									
 					
 					if(m_busLineHashMap.get(indexName) == null){
 						m_busLineHashMap.put(indexName, new HashMap<String, Marker>());
@@ -292,7 +288,7 @@ public class MapActivity extends FragmentActivity
 	 */
 	private String stationBusLines(){
 		// TODO: Make this function return the bus lines for the specific station
-		return "Bus Lines: " + arrayVehicles[0] + ", " + arrayVehicles[1] + ", " + arrayVehicles[2];
+		return "Bus Lines: " + m_arrayVehicles[0] + ", " + m_arrayVehicles[1] + ", " + m_arrayVehicles[2];
 	}
 	
 	@Override
@@ -310,7 +306,7 @@ public class MapActivity extends FragmentActivity
 		// If station marker is clicked, display list of bus lines
 		if(marker.getTitle().startsWith("Station")){ 
 			// Do something if this is a Station marker
-			DialogFragment selectDialog = LineSelectDialogFragment.newInstance(arrayVehicles);
+			DialogFragment selectDialog = LineSelectDialogFragment.newInstance(m_arrayVehicles);
 			selectDialog.show(getSupportFragmentManager(), "LineSelectDialog");
 
 		}

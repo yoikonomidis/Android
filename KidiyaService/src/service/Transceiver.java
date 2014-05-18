@@ -1,5 +1,6 @@
 package service;
 
+import kidiya.utils.Settings;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -26,17 +27,14 @@ public class Transceiver {
 			m_instance = new Transceiver();
 		}
 		return m_instance;
-	}
+	}	
 	
 	/**
 	 * Connect the client to the server - Called in the constructor
 	 */
 	private void connect(){
-		// TODO: IP and PORT should be retrieved from the global Settings 
 		final String url;
-		final String ip = "192.168.2.4";
-		final String port = "3000";
-		url = "http://"+ip+":"+port;
+		url = "http://" + Settings.instance().serverIP() + ":" + Settings.instance().serverPort();
 		Log.v("Transceiver", "URL: " + url);
 	    SocketIORequest req = new SocketIORequest(url);
 	    req.setLogging("Socket.IO", Log.VERBOSE);
