@@ -29,23 +29,18 @@ public class DataObserver extends ContentObserver {
 	private static final String TAG = "DataObserver";
 	//private SQLiteHelper database;
 	private Context context;
-	private Transceiver transceiver;
+	private Transceiver m_transceiver;
 
 	public DataObserver(Handler handler, Context context) {
 		super(handler);
 		this.context = context;
-		transceiver = Transceiver.instance();
-		//Send location using Transceiver
-		while(!transceiver.isConnected())
-		{}
+		m_transceiver = Transceiver.instance();
 		
-		Log.v(TAG, "Connected");
-		// TODO Auto-generated constructor stub
+		Log.v(TAG, "Connected"); // That appears twice in the log. Why?
 	}
 	
-	//Implementation for older APIs
-	@Override
-	public void onChange(boolean selfChange) {	
+	 @Override
+	 public void onChange(boolean selfChange) {
 	     // Handle change.
 		 String[] projection = { SQLiteHelper.COLUMN_TIMESTAMP,
 					  SQLiteHelper.COLUMN_LATITUDE, SQLiteHelper.COLUMN_LONGITUDE };
@@ -80,10 +75,11 @@ public class DataObserver extends ContentObserver {
 		    e.printStackTrace();
 		}
 		// Send an event to the server, along with the JSON message
-		transceiver.transmitEvent("updateVehicleLocation", locationArray);
+		m_transceiver.transmitEvent("updateVehicleLocation", locationArray);
 		// ############################################################
 	 }
 
+	 // Implement the onChange(boolean, Uri) method to take advantage of the new Uri argument.
 	 @Override
 	 public void onChange(boolean selfChange, Uri uri) {
 		 //queryLastLocation();
@@ -93,6 +89,7 @@ public class DataObserver extends ContentObserver {
 	     // Handle change.
 		 String[] projection = { SQLiteHelper.COLUMN_TIMESTAMP,
 					  SQLiteHelper.COLUMN_LATITUDE, SQLiteHelper.COLUMN_LONGITUDE };
+		 
 		 Cursor c = context.getContentResolver().query(DataProvider.CONTENT_URI, 
 				 							projection, SQLiteHelper.COLUMN_ID + "='" + id + "'",
 				 							null, null);
@@ -124,7 +121,7 @@ public class DataObserver extends ContentObserver {
 		    e.printStackTrace();
 		}
 		// Send an event to the server, along with the JSON message
-		transceiver.transmitEvent("updateVehicleLocation", locationArray);
+		m_transceiver.transmitEvent("updateVehicleLocation", locationArray);
 		// ############################################################
 	}
 
@@ -139,5 +136,5 @@ public class DataObserver extends ContentObserver {
 				Log.v("Transceiver", "Event locationInfo received with json arg: " + jsonData.toString());
 			}
 		};
-	}
+	 }
 }

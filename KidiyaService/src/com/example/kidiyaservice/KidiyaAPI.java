@@ -1,5 +1,9 @@
 package com.example.kidiyaservice;
 
+import org.json.JSONArray;
+
+import com.koushikdutta.async.http.socketio.EventCallback;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -8,16 +12,59 @@ import android.os.IBinder;
 import android.util.Log;
 import service.KidiyaService;
 import service.KidiyaService.KidiyaBinder;
+import service.Transceiver;
 
 /*
  * High-level API for Kidiya Service.
  */
 public class KidiyaAPI {
+	private static KidiyaAPI m_KidiyaAPI;
     private final ServiceConnection mServiceConnection;
     private KidiyaService mKidiyaService;
     private final Context mContext;
     private static final String TAG = "Kidiya API";
     private boolean mServiceBound = false;
+    
+    public static void initialize(Context context, ServiceConnection serviceConnection){
+    	if(m_KidiyaAPI == null){
+    		m_KidiyaAPI = new KidiyaAPI(context, serviceConnection);
+    	}
+    }
+    
+    public static KidiyaAPI instance(){
+    	return m_KidiyaAPI;
+    }
+    
+    /**
+	 * Transmits an event along with a JSON message
+	 * @param eventName the name of the event
+	 * @param jsonArray the JSON message
+	 */
+	public void transmitEvent(String eventName, JSONArray jsonArray){
+		Transceiver.instance().transmitEvent(eventName, jsonArray);
+	}
+	
+	/**
+	 * Receives events along with a JSON message
+	 * @param eventName the name of the event
+	 * @param eventCallback the callback function
+	 */
+	public void receiveEvent(String eventName, EventCallback eventCallback){
+		Transceiver.instance().receiveEvent(eventName, eventCallback);
+	}
+	
+	/**
+	 * Stops receiving events
+	 * @param eventName the name of the event
+	 * @param eventCallback the callback function
+	 */
+	public void stopReceivingEvent(String eventName, EventCallback eventCallback){
+		Transceiver.instance().stopReceivingEvent(eventName, eventCallback);
+	}
+	
+	public boolean isConnected(){
+		return Transceiver.instance().isConnected();
+	}
     
     /**
      * Service connection to handle connection with the Kidiya service.
@@ -61,6 +108,7 @@ public class KidiyaAPI {
     public KidiyaAPI(Context context, ServiceConnection serviceConnection) {
         mServiceConnection = new KidiyaServiceConn(serviceConnection);
         mContext = context;
+    	Transceiver.instance();
         bindToKidiyaService();
     }
     

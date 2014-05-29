@@ -7,7 +7,6 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -26,11 +25,11 @@ public class LocationSensor {
 
 		@Override
 		public void onLocationChanged(Location location) {
-			// TODO Auto-generated method stub
 			Log.v(TAG, "New location: " + location);
 			long timestamp = location.getTime();
 			double latitude = location.getLatitude();
 			double longitude = location.getLongitude();
+			
 		    ContentValues values = new ContentValues();
 		    values.put(SQLiteHelper.COLUMN_TIMESTAMP, timestamp);
 		    values.put(SQLiteHelper.COLUMN_LATITUDE, latitude);
@@ -41,8 +40,6 @@ public class LocationSensor {
 
 		@Override
 		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-			// TODO Auto-generated method stub
-			
 		}
 	};
 	
