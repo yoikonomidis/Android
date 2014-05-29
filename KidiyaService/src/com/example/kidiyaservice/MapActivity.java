@@ -11,11 +11,13 @@ import kidiya.utils.Tools;
 
 import com.example.kidiyaservice.LineSelectDialogFragment.LineSelectDialogListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.koushikdutta.async.http.socketio.Acknowledge;
@@ -37,9 +39,10 @@ import android.content.DialogInterface;
 import android.os.Build;
 
 public class MapActivity extends FragmentActivity 
-						implements OnMarkerClickListener, OnInfoWindowClickListener, LineSelectDialogListener{
+						implements OnMarkerClickListener, OnInfoWindowClickListener, LineSelectDialogListener, OnCameraChangeListener{
 	
 	private HashMap<String, HashMap<String, Marker>> m_busLineHashMap = new HashMap<String, HashMap<String, Marker>>();
+	private HashMap<String, Marker> m_stationMarkerHashMap = new HashMap<String, Marker>();
 	private String[] m_arrayVehicles = {"220", "230", "235"};
 	private ArrayList<String> m_monitoredBusLines = new ArrayList<String>();
 	private Handler m_handler = new Handler();
@@ -72,8 +75,8 @@ public class MapActivity extends FragmentActivity
 		// Show the Up button in the action bar.
 		setupActionBar();	
 		
-		UpdateStationMarkers updateStationMarkers = new UpdateStationMarkers();
-		m_handler.post(updateStationMarkers);
+//		UpdateStationMarkers updateStationMarkers = new UpdateStationMarkers();
+//		m_handler.post(updateStationMarkers);
 	}
 	
 	@Override
@@ -86,6 +89,8 @@ public class MapActivity extends FragmentActivity
 		ApplicationSettings.instance().googleMap().setOnInfoWindowClickListener(this);
 		
 		ApplicationSettings.instance().googleMap().setOnMarkerClickListener(this);
+		
+		ApplicationSettings.instance().googleMap().setOnCameraChangeListener(this);
 		
 		// ######## Example of how to use the transceiver API ########
 		// Register to a specific event from the server
@@ -269,12 +274,12 @@ public class MapActivity extends FragmentActivity
 		public void run() {
 			try {
 				for(int i=0; i<ApplicationSettings.instance().stationsHashMap().size(); i++){	
-					ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
+					m_stationMarkerHashMap.put(ApplicationSettings.instance().stationsHashMap().get(i+"").id(), ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
 					.position(ApplicationSettings.instance().stationsHashMap().get(i+"").latLng())
 					.title("Station " + ApplicationSettings.instance().stationsHashMap().get(i+"").id() + " "
 							+ ApplicationSettings.instance().stationsHashMap().get(i+"").name())
 					.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-					.snippet(stationBusLines()));
+					.snippet(stationBusLines())));					
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -305,11 +310,51 @@ public class MapActivity extends FragmentActivity
 	public void onInfoWindowClick(Marker marker) {
 		// If station marker is clicked, display list of bus lines
 		if(marker.getTitle().startsWith("Station")){ 
-			// Do something if this is a Station marker
+			// Display Bus Line selection dialog
 			DialogFragment selectDialog = LineSelectDialogFragment.newInstance(m_arrayVehicles);
 			selectDialog.show(getSupportFragmentManager(), "LineSelectDialog");
 
 		}
+	}
+	
+	@Override
+	public void onCameraChange(CameraPosition cameraPosition){
+		displayMarkers(cameraPosition);
+	}
+	
+	private void displayMarkers(CameraPosition cameraPosition){
+		//This is the current user-viewable region of the map
+        LatLngBounds bounds = ApplicationSettings.instance().googleMap().getProjection().getVisibleRegion().latLngBounds;
+		
+        for (Entry<String, Station> element : ApplicationSettings.instance().stationsHashMap().entrySet()) {			
+			//If the item is within the the bounds of the screen
+            if(bounds.contains(element.getValue().latLng())){
+            	//If the item isn't already being displayed
+                if(!m_stationMarkerHashMap.containsKey(element.getValue().id()))
+                {
+                    //Add the Marker to the Map and keep track of it with the HashMap                    
+                	m_stationMarkerHashMap.put(ApplicationSettings.instance().stationsHashMap().get(element.getValue().id()).id(), ApplicationSettings.instance().googleMap().addMarker(new MarkerOptions()
+					.position(ApplicationSettings.instance().stationsHashMap().get(element.getValue().id()).latLng())
+					.title("Station " + ApplicationSettings.instance().stationsHashMap().get(element.getValue().id()).id() + " "
+							+ ApplicationSettings.instance().stationsHashMap().get(element.getValue().id()).name())
+					.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+					.snippet(stationBusLines())));
+                }
+//            	m_stationMarkerHashMap.get(element.getValue().id()).setVisible(true);
+            }
+            else{
+            	//If the course was previously on screen
+                if(m_stationMarkerHashMap.containsKey(element.getValue().id()))
+                {
+                    //1. Remove the Marker from the GoogleMap
+                	m_stationMarkerHashMap.get(element.getValue().id()).remove();
+                 
+                    //2. Remove the reference to the Marker from the HashMap
+                	m_stationMarkerHashMap.remove(element.getValue().id());
+                }
+//            	m_stationMarkerHashMap.get(element.getValue().id()).setVisible(false);
+            }
+		}			
 	}
 }
 

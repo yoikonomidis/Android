@@ -42,7 +42,7 @@ public class ExampleActivity extends Activity {
 		// Create the main menu page
 		createMainMenu();
 		
-		// TODO: Add a user friendly message if connection is not established after the attempts
+		// TODO: Add a user friendly message if connection is not established after the attempts, and exit application
 		int connectionAttempts = 10;
 		
 		// Make sure a connection to the server is established before we attempt to fetch station info
