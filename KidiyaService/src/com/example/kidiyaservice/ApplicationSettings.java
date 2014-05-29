@@ -5,10 +5,14 @@ import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import android.app.Activity;
+import android.content.Context;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.koushikdutta.async.http.socketio.Acknowledge;
@@ -112,5 +116,27 @@ public class ApplicationSettings {
 				}
 			}
 		};
+	}
+	
+	/**
+	 * This function checks whether Google Play Services are installed and if not, redirects the user to Google Play Store
+	 * @param context
+	 * @return true if Google Play Services are installed, false otherwise
+	 */
+	public static boolean googlePlayServicesExists(Context context){
+		final int RQS_GooglePlayServices = 1;
+		
+		boolean result = false;
+		
+		int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
+		
+		if (status != ConnectionResult.SUCCESS) {
+			GooglePlayServicesUtil.getErrorDialog(status, (Activity) context, RQS_GooglePlayServices).show();
+		}
+		else{
+			result = true;
+		}
+		
+		return result;
 	}
 }
