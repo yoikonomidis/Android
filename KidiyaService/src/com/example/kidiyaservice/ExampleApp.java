@@ -20,7 +20,7 @@ public class ExampleApp extends Application implements ServiceConnection {
         super.onCreate();
         Log.v(TAG, "Example App installed");// Initialize Settings
         Settings.instance(this, getResources().getString(R.string.app_name));
-        KidiyaAPI.initialize(this, this);
+//        KidiyaAPI.initialize(this, this);
     }
 
 	@Override

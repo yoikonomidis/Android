@@ -12,5 +12,11 @@
   	<string name="location_timestamp">Timestamp</string>
   	<string name="location_latitude">Latitude</string>
   	<string name="location_longitude">Longitude</string>
+  	<string name="add_line">Enter Vehicle\'s Line and ID, and press the Button</string>
+  	<string name="button_ok">OK</string>
+  	<string name="button_register">Register Info</string>
+  	<string name="button_update">Update Info</string>
+  	<string name="busLineLabel">Bus Line: </string>
+  	<string name="vehicleIdLabel">Vehicle ID: </string>
 
 </resources>
