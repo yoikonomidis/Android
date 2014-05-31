@@ -103,8 +103,8 @@ public class DataObserver extends ContentObserver {
 		JSONArray locationArray = new JSONArray();
 		try {
 			//Create json for postData
-			postData.put("id", 5);
-			postData.put("name", "235");
+			postData.put("id", ApplicationSettings.instance().vehicleId());
+			postData.put("name", ApplicationSettings.instance().busLine());
 	    
 			JSONObject loc = new JSONObject();
 			loc.put("latitude", lat);
