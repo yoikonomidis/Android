@@ -18,9 +18,10 @@ public class ExampleApp extends Application implements ServiceConnection {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.v(TAG, "Example App installed");// Initialize Settings
+        Log.v(TAG, "Example App installed");
+        
+        // Initialize Settings
         Settings.instance(this, getResources().getString(R.string.app_name));
-//        KidiyaAPI.initialize(this, this);
     }
 
 	@Override
@@ -30,20 +31,15 @@ public class ExampleApp extends Application implements ServiceConnection {
 
             @Override
             public void run() {
-                startKidiya();
+            	m_boundService = KidiyaAPI.instance().getService();
+            	KidiyaAPI.instance().startKidiya(); 
             }
         }.start();
-		//mKidiyaAPI.unbindFromKidiyaService();
 	}
 
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
 		Log.v(TAG, "Kidiya service is being disconnected");
 		m_boundService = null;
-	}
-	
-    protected void startKidiya() {
-    	m_boundService = KidiyaAPI.instance().getService();
-    	m_boundService.startKidiya();
 	}
 }

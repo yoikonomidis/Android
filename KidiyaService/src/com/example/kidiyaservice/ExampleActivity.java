@@ -35,6 +35,7 @@ import android.widget.Toast;
 public class ExampleActivity extends ListActivity{
 	//private LocationsAO locationSource;
 	private static final int DELETE_ID = Menu.FIRST + 1;
+	private ExampleApp m_application;
 	private Context m_context;
 	
 	// TODO: Bus lines should be retrieved from the server's database
@@ -43,6 +44,7 @@ public class ExampleActivity extends ListActivity{
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		Log.d("ExampleActivity", "OnCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.registerlineid_layout);
 
@@ -54,6 +56,8 @@ public class ExampleActivity extends ListActivity{
 		// Initialize ApplicationSettings
 		ApplicationSettings.instance();
 
+		m_application = (ExampleApp) getApplication();
+		
 		this.getListView().setDividerHeight(2);
 		registerForContextMenu(getListView());
 
@@ -77,12 +81,10 @@ public class ExampleActivity extends ListActivity{
 										
 					ApplicationSettings.instance().setBusLine(busLineAutoCompleteTextView.getText().toString());
 					ApplicationSettings.instance().setVehicleId(Integer.parseInt(vehicleIdEditText.getText().toString()));
+										
+					registerButton.setText(R.string.button_update);
 					
-					if(KidiyaAPI.instance() == null)
-						registerButton.setText(R.string.button_update);
-					
-					ExampleApp app = (ExampleApp) getApplication();
-					KidiyaAPI.initialize(app, app);					
+					KidiyaAPI.setupKidiyaAPI(m_application, m_application);					
 				}
 				else{
 					Toast.makeText(m_context, "Please Enter a valid Bus Line and a valid Vehicle ID", Toast.LENGTH_LONG).show();					
@@ -90,6 +92,14 @@ public class ExampleActivity extends ListActivity{
 			}
 		});
 	}
+	
+	@Override
+	public void onDestroy(){
+		Log.d("ExampleActivity", "Example Activity Destroyed");		
+		super.onDestroy();
+				
+		KidiyaAPI.instance().stopKidiya();
+	}	
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

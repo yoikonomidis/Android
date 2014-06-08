@@ -19,16 +19,20 @@ import service.Transceiver;
  */
 public class KidiyaAPI {
 	private static KidiyaAPI m_KidiyaAPI;
-    private final ServiceConnection mServiceConnection;
-    private KidiyaService mKidiyaService;
-    private final Context mContext;
+    private final ServiceConnection m_serviceConnection;
+    private KidiyaService m_KidiyaService;
+    private final Context m_context;
     private static final String TAG = "Kidiya API";
-    private boolean mServiceBound = false;
+    private boolean m_serviceBound = false;
     
-    public static void initialize(Context context, ServiceConnection serviceConnection){
+    public static void setupKidiyaAPI(Context context, ServiceConnection serviceConnection){
     	if(m_KidiyaAPI == null){
+    		Log.d("KIDIYA_API", "Initialize KidiyaAPI");
     		m_KidiyaAPI = new KidiyaAPI(context, serviceConnection);
     	}
+    	
+    	Transceiver.instance().connect();;
+    	KidiyaAPI.instance().bindToKidiyaService();
     }
     
     public static KidiyaAPI instance(){
@@ -65,26 +69,45 @@ public class KidiyaAPI {
 	public boolean isConnected(){
 		return Transceiver.instance().isConnected();
 	}
+	
+    public void disconnectFromServer(){
+    	Transceiver.instance().disconnect();
+    }
+    
+    public void startKidiya(){
+    	m_KidiyaService.startKidiya();
+    }
+    
+    public void stopKidiya(){
+    	unbindFromKidiyaService();
+    	m_KidiyaService.stopKidiya();
+    	m_KidiyaService = null;    
+    	disconnectFromServer();
+    }
+    
+    public KidiyaService getService() {
+        return m_KidiyaService;
+    }
     
     /**
      * Service connection to handle connection with the Kidiya service.
      */
-    private class KidiyaServiceConn implements ServiceConnection {
-        private final ServiceConnection mServiceConnection;
+    private class KidiyaServiceConnection implements ServiceConnection {
+        private final ServiceConnection KidiyaServiceConnection;
 
-        public KidiyaServiceConn(ServiceConnection serviceConnection) {
-            mServiceConnection = serviceConnection;
+        public KidiyaServiceConnection(ServiceConnection serviceConnection) {
+        	KidiyaServiceConnection = serviceConnection;
         }
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
             Log.v(TAG, "Bound to Kidiya API...");
 
-            mKidiyaService = ((KidiyaBinder) binder).getService();
-            mServiceBound = true;
+            m_KidiyaService = ((KidiyaBinder) binder).getService();
+            m_serviceBound = true;
 
-            if (mServiceConnection != null) {
-                mServiceConnection.onServiceConnected(className, binder);
+            if (KidiyaServiceConnection != null) {
+            	KidiyaServiceConnection.onServiceConnected(className, binder);
             }
         }
 
@@ -92,47 +115,43 @@ public class KidiyaAPI {
         public void onServiceDisconnected(ComponentName className) {
             Log.v(TAG, "Kidiya API disconnected...");
 
-            mKidiyaService = null;
-            mServiceBound = false;
+            m_KidiyaService = null;
+            m_serviceBound = false;
 
-            if (mServiceConnection != null) {
-                mServiceConnection.onServiceDisconnected(className);
+            if (KidiyaServiceConnection != null) {
+            	KidiyaServiceConnection.onServiceDisconnected(className);
             }
         }
     }
 
-    public KidiyaAPI(Context context) {
+    private KidiyaAPI(Context context) {
         this(context, null);
     }
 
-    public KidiyaAPI(Context context, ServiceConnection serviceConnection) {
-        mServiceConnection = new KidiyaServiceConn(serviceConnection);
-        mContext = context;
-    	Transceiver.instance();
-        bindToKidiyaService();
+    private KidiyaAPI(Context context, ServiceConnection serviceConnection) {
+        m_serviceConnection = new KidiyaServiceConnection(serviceConnection);
+        m_context = context;
     }
     
-    public void bindToKidiyaService() {
-        if (!mServiceBound) {
-            final Intent serviceIntent = new Intent(mContext, KidiyaService.class);
-            boolean bindResult = mContext.bindService(serviceIntent, mServiceConnection,
+    private void bindToKidiyaService() {
+        if (!m_serviceBound) {
+        	Log.d("KIDIYA_API", "Binding...");
+            final Intent serviceIntent = new Intent(m_context, KidiyaService.class);
+            boolean bindResult = m_context.bindService(serviceIntent, m_serviceConnection,
                     Context.BIND_AUTO_CREATE);
         } else {
             // already bound
         }
     }
     
-    public void unbindFromKidiyaService() {
-        if (true == mServiceBound && null != mServiceConnection) {
-            mContext.unbindService(mServiceConnection);
+    private void unbindFromKidiyaService() {
+        if (true == m_serviceBound && null != m_serviceConnection) {
+        	Log.d("KIDIYA_API", "Unbinding...");
+            m_context.unbindService(m_serviceConnection);
         } else {
             // already unbound
         }
-        mKidiyaService = null;
-        mServiceBound = false;
-    }
-    
-    public KidiyaService getService() {
-        return mKidiyaService;
+
+        m_serviceBound = false;
     }
 }
