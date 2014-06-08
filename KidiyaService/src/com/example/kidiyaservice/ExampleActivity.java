@@ -18,6 +18,7 @@ import kidiya.utils.Settings;
 public class ExampleActivity extends Activity {
 	
 	private Context m_context;
+	private ExampleApp m_application;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -36,7 +37,10 @@ public class ExampleActivity extends Activity {
 		ApplicationSettings.instance();
 		
 		// Start the application
-		ExampleApp app = (ExampleApp) getApplication();
+		m_application = (ExampleApp) getApplication();
+		
+		KidiyaAPI.setupKidiyaAPI(m_application, m_application);
+//		KidiyaAPI.instance().startKidiya();
 		
 		// Create the main menu page
 		createMainMenu();
@@ -59,6 +63,13 @@ public class ExampleActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+	}
+	
+	@Override
+	public void onDestroy(){		
+		super.onDestroy();
+				
+//		KidiyaAPI.instance().stopKidiya();
 	}
 	
 	private void createMainMenu(){

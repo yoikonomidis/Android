@@ -19,16 +19,22 @@ public class ExampleApp extends Application implements ServiceConnection {
     public void onCreate() {
         super.onCreate();
         Log.v(TAG, "Example App installed");
+        
         // Initialize Settings
         Settings.instance(this, getResources().getString(R.string.app_name));
-        KidiyaAPI.initialize(this, this);
     }
 
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		Log.v(TAG, "Kidiya service is being connected");
-		m_boundService = ((KidiyaService.KidiyaBinder)service).getService();
-		//mKidiyaAPI.unbindFromKidiyaService();
+        new Thread() {
+
+            @Override
+            public void run() {
+            	m_boundService = KidiyaAPI.instance().getService();
+            	KidiyaAPI.instance().startKidiyaService(); 
+            }
+        }.start();
 	}
 
 	@Override

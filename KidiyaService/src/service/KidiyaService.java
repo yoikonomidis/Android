@@ -23,6 +23,7 @@ public class KidiyaService extends Service {
     private static Handler m_initHandler;	// handler on main application thread	
     private LocationSensor m_locationSensor;
     private final IBinder m_binder = new KidiyaBinder();	// interface for clients
+    private Intent m_intent;
 	
     /**
      * Class for clients to access Kidiya Service.
@@ -104,7 +105,15 @@ public class KidiyaService extends Service {
     
     public synchronized void startKidiya() {
     	Log.v(TAG, "Kidiya service about to be started");
-        startService(new Intent(this, KidiyaService.class));
+    	m_intent = new Intent(this, KidiyaService.class);
+        startService(m_intent);
+    }
+    
+    public synchronized void stopKidiya(){
+    	Log.v(TAG, "Kidiya service about to be terminated");
+    	
+    	if(m_intent != null)
+    		stopService(m_intent);
     }
     
     public void startSensing(){
