@@ -25,12 +25,10 @@ public class DataObserver extends ContentObserver {
 	private static final String TAG = "DataObserver";
 	//private SQLiteHelper database;
 	private Context context;
-	private Transceiver m_transceiver;
 
 	public DataObserver(Handler handler, Context context) {
 		super(handler);
 		this.context = context;
-		m_transceiver = Transceiver.instance();
 		
 		Log.v(TAG, "Connected"); // That appears twice in the log. Why?
 	}
@@ -71,7 +69,7 @@ public class DataObserver extends ContentObserver {
 		    e.printStackTrace();
 		}
 		// Send an event to the server, along with the JSON message
-		m_transceiver.transmitEvent("updateVehicleLocation", locationArray);
+		Transceiver.instance().transmitEvent("updateVehicleLocation", locationArray);
 		// ############################################################
 	 }
 
@@ -117,7 +115,7 @@ public class DataObserver extends ContentObserver {
 		    e.printStackTrace();
 		}
 		// Send an event to the server, along with the JSON message
-		m_transceiver.transmitEvent("updateVehicleLocation", locationArray);
+		Transceiver.instance().transmitEvent("updateVehicleLocation", locationArray);
 		// ############################################################
 	}
 

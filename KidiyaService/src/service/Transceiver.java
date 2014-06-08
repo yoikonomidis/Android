@@ -16,9 +16,11 @@ import com.koushikdutta.async.http.socketio.SocketIORequest;
 public class Transceiver {
 	private static Transceiver m_instance;
 	private SocketIOClient m_client;
+	private boolean m_connected;
 
 	private Transceiver(){
-		connect();
+		Log.d("TRANSCEIVER", "Transceiver Created");
+		m_connected = false;
 	}
 
 	public static Transceiver instance(){
@@ -32,13 +34,26 @@ public class Transceiver {
 	/**
 	 * Connect the client to the server - Called in the constructor
 	 */
-	private void connect(){
-		final String url;
-		url = "http://" + Settings.instance().serverIP() + ":" + Settings.instance().serverPort();
-		Log.v("Transceiver", "URL: " + url);
-	    SocketIORequest req = new SocketIORequest(url);
-	    req.setLogging("Socket.IO", Log.VERBOSE);
-	    SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), req, connectCallback());
+	public void connect(){
+		if((!isConnected()) && (m_client == null)){			
+			final String url;
+			url = "http://" + Settings.instance().serverIP() + ":" + Settings.instance().serverPort();
+			Log.v("Transceiver", "URL: " + url);
+			SocketIORequest req = new SocketIORequest(url);
+			req.setLogging("Socket.IO", Log.VERBOSE);
+			SocketIOClient.connect(AsyncHttpClient.getDefaultInstance(), req, connectCallback());
+		}
+	}
+	
+	/**
+	 * Disconnect from the server
+	 */
+	public void disconnect(){
+		if(isConnected())
+		{
+			m_client.disconnect();
+			m_client = null;
+		}
 	}
 	
 	/**
@@ -54,6 +69,7 @@ public class Transceiver {
 					m_client = client;												
 					m_client.setDisconnectCallback(disconnectCallback());
 					m_client.setReconnectCallback(reconnectCallback());
+					m_connected = true;
 				}
 				catch (Exception e) {
 				}
@@ -67,9 +83,13 @@ public class Transceiver {
 	 * @param jsonArray the JSON message
 	 */
 	public void transmitEvent(String eventName, JSONArray jsonArray){
-		Log.v("Transceiver", "TransmitEvent");	
 		if(isConnected())
-			m_client.emit(eventName, jsonArray, null);
+			try{
+				Log.d("Transceiver", "TransmitEvent");
+				m_client.emit(eventName, jsonArray, null);
+			}catch(Exception e){ // (Probably not needed) This is used in case the connection is terminated while transmitting
+				Log.d("TRANSCEIVER", "Connection Lost");
+			}
 	}
 	
 	/**
@@ -77,9 +97,9 @@ public class Transceiver {
 	 * @param eventName the name of the event
 	 * @param eventCallback the callback function
 	 */
-	public void receiveEvent(String eventName, EventCallback eventCallback){
-		Log.v("Transceiver", "ReceiveEvent");
+	public void receiveEvent(String eventName, EventCallback eventCallback){		
 		if(isConnected())
+			Log.v("Transceiver", "ReceiveEvent");
 			m_client.addListener(eventName, eventCallback);
 	}
 	
@@ -88,9 +108,9 @@ public class Transceiver {
 	 * @param eventName the name of the event
 	 * @param eventCallback the callback function
 	 */
-	public void stopReceivingEvent(String eventName, EventCallback eventCallback){
-		Log.v("Transceiver", "StopReceivingEvent");
+	public void stopReceivingEvent(String eventName, EventCallback eventCallback){		
 		if(isConnected())
+			Log.v("Transceiver", "StopReceivingEvent");
 			m_client.removeListener(eventName, eventCallback);
 	}
 	
@@ -99,7 +119,7 @@ public class Transceiver {
 	 * @return
 	 */
 	public boolean isConnected(){
-		return (m_client != null);
+		return m_connected;
 	}
 	
 	/**
@@ -109,10 +129,11 @@ public class Transceiver {
 	private DisconnectCallback disconnectCallback(){
 		return new DisconnectCallback(){
 			@Override
-			public void onDisconnect(Exception arg0) {
-				Log.v("Transceiver", "DisconnectCallback");
-				m_client = null;
-				m_instance = null;
+			public void onDisconnect(Exception arg0) {				
+				if(isConnected()){
+					Log.v("Transceiver", "DisconnectCallback");
+					m_connected = false;
+				}
 			}
 		};
 	}
@@ -126,6 +147,7 @@ public class Transceiver {
 			@Override
 			public void onReconnect() {
 				Log.v("Transceiver", "ReconnectCallback");
+				m_connected = true;
 			}
 		};
 	}
