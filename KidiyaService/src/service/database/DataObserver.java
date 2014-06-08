@@ -1,10 +1,11 @@
 package service.database;
 
+import java.util.Calendar;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.example.kidiyaservice.ApplicationSettings;
 import com.koushikdutta.async.http.socketio.Acknowledge;
 import com.koushikdutta.async.http.socketio.EventCallback;
 
@@ -12,11 +13,14 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import service.Transceiver;
 import service.database.DataProvider;
 import service.database.SQLiteHelper;
 import android.net.Uri;
 import android.os.Handler;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 @SuppressLint("NewApi")
@@ -55,8 +59,8 @@ public class DataObserver extends ContentObserver {
 		JSONArray locationArray = new JSONArray();
 		try {
 			//Create json for postData
-			postData.put("id", ApplicationSettings.instance().vehicleId());
-			postData.put("name", ApplicationSettings.instance().busLine());
+			postData.put("id", 5);
+			postData.put("name", "235");
 	    
 			JSONObject loc = new JSONObject();
 			loc.put("latitude", lat);
@@ -101,8 +105,8 @@ public class DataObserver extends ContentObserver {
 		JSONArray locationArray = new JSONArray();
 		try {
 			//Create json for postData
-			postData.put("id", ApplicationSettings.instance().vehicleId());
-			postData.put("name", ApplicationSettings.instance().busLine());
+			postData.put("id", 5);
+			postData.put("name", "235");
 	    
 			JSONObject loc = new JSONObject();
 			loc.put("latitude", lat);

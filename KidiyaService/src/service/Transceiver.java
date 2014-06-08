@@ -35,7 +35,7 @@ public class Transceiver {
 	 * Connect the client to the server - Called in the constructor
 	 */
 	public void connect(){
-		if((!isConnected()) && (m_client == null)){			
+		if(!isConnected()){			
 			final String url;
 			url = "http://" + Settings.instance().serverIP() + ":" + Settings.instance().serverPort();
 			Log.v("Transceiver", "URL: " + url);
