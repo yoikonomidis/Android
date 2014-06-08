@@ -84,7 +84,8 @@ public class ExampleActivity extends ListActivity{
 										
 					registerButton.setText(R.string.button_update);
 					
-					KidiyaAPI.setupKidiyaAPI(m_application, m_application);					
+					KidiyaAPI.setupKidiyaAPI(m_application, m_application);
+					KidiyaAPI.instance().startKidiya();					
 				}
 				else{
 					Toast.makeText(m_context, "Please Enter a valid Bus Line and a valid Vehicle ID", Toast.LENGTH_LONG).show();					

@@ -32,7 +32,7 @@ public class ExampleApp extends Application implements ServiceConnection {
             @Override
             public void run() {
             	m_boundService = KidiyaAPI.instance().getService();
-            	KidiyaAPI.instance().startKidiya(); 
+            	KidiyaAPI.instance().startKidiyaService(); 
             }
         }.start();
 	}
