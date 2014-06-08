@@ -43,6 +43,7 @@ public class ExampleActivity extends ListActivity{
 		m_application = (ExampleApp) getApplication();
 		
 		KidiyaAPI.setupKidiyaAPI(m_application, m_application);
+		KidiyaAPI.instance().startKidiya();
 
 		this.getListView().setDividerHeight(2);
 		registerForContextMenu(getListView());

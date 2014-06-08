@@ -31,8 +31,7 @@ public class KidiyaAPI {
     		m_KidiyaAPI = new KidiyaAPI(context, serviceConnection);
     	}
     	
-    	Transceiver.instance().connect();;
-    	KidiyaAPI.instance().bindToKidiyaService();
+    	Transceiver.instance().connect();
     }
     
     public static KidiyaAPI instance(){
@@ -75,7 +74,7 @@ public class KidiyaAPI {
     }
     
     public void startKidiya(){
-    	m_KidiyaService.startKidiya();
+    	bindToKidiyaService();
     }
     
     public void stopKidiya(){
@@ -84,6 +83,10 @@ public class KidiyaAPI {
     	m_KidiyaService = null;    
     	disconnectFromServer();
     }
+    
+    public void startKidiyaService(){
+    	m_KidiyaService.startKidiya();
+    }    
     
     public KidiyaService getService() {
         return m_KidiyaService;
