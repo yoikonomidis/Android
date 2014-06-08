@@ -35,7 +35,7 @@ public class Transceiver {
 	 * Connect the client to the server - Called in the constructor
 	 */
 	public void connect(){
-		if(!isConnected()){			
+		if((!isConnected()) && (m_client == null)){			
 			final String url;
 			url = "http://" + Settings.instance().serverIP() + ":" + Settings.instance().serverPort();
 			Log.v("Transceiver", "URL: " + url);
@@ -50,7 +50,10 @@ public class Transceiver {
 	 */
 	public void disconnect(){
 		if(isConnected())
+		{
 			m_client.disconnect();
+			m_client = null;
+		}
 	}
 	
 	/**
