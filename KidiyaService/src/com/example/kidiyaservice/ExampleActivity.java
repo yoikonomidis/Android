@@ -99,7 +99,8 @@ public class ExampleActivity extends ListActivity{
 		Log.d("ExampleActivity", "Example Activity Destroyed");		
 		super.onDestroy();
 				
-		KidiyaAPI.instance().stopKidiya();
+		if(KidiyaAPI.instance() != null)
+			KidiyaAPI.instance().stopKidiya();
 	}	
 
 	@Override
